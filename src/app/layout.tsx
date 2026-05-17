@@ -13,18 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReguMate — AI Regulatory Compliance Agent",
+  title: "DZ-Fisc — Conformité Fiscale & Sociale Automatisée",
   description:
-    "Continuous AI-powered compliance monitoring that maps your infrastructure to SOC 2, GDPR, HIPAA, and ISO 27001 — and finds the gaps before auditors do.",
+    "Automatisez vos déclarations fiscales (TAP, IBS, IRG, TVA) et sociales (CNAS, CASNOS) en Algérie. Calculs, formulaires et alertes — tout en un.",
   keywords: [
-    "ReguMate",
-    "compliance",
-    "SOC 2",
-    "GDPR",
-    "HIPAA",
-    "ISO 27001",
-    "AI compliance",
-    "audit automation",
+    "DZ-Fisc",
+    "fiscalité Algérie",
+    "TAP",
+    "IBS",
+    "IRG",
+    "TVA",
+    "CNAS",
+    "CASNOS",
+    "déclaration fiscale",
+    "conformité",
   ],
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
@@ -37,9 +39,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" dir="ltr" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f8fafc] text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#f0fdf4] text-foreground`}
       >
         {children}
       </body>
