@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { validateOrigin, sanitizeBody } from "@/lib/api-security";
+
+const ALLOWED_FIELDS = [
+  'title', 'title_ar', 'deadline_date', 'deadline_type',
+  'urgency', 'status', 'amount', 'related_obligation_id', 'notes',
+];
 
 export async function GET() {
   try {
@@ -29,7 +35,8 @@ export async function GET() {
       .order("deadline_date", { ascending: true });
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Database error:", error);
+      return NextResponse.json({ error: "An internal error occurred" }, { status: 500 });
     }
 
     return NextResponse.json({ data });
@@ -39,6 +46,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const supabase = await createSupabaseServerClient();
     const {
@@ -60,8 +71,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const sanitizedData = sanitizeBody(body, ALLOWED_FIELDS);
     const insertData = {
-      ...body,
+      ...sanitizedData,
       company_id: profile.company_id,
     };
 
@@ -72,7 +84,8 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Database error:", error);
+      return NextResponse.json({ error: "An internal error occurred" }, { status: 500 });
     }
 
     return NextResponse.json({ data }, { status: 201 });

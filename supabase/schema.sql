@@ -141,8 +141,15 @@ ALTER TABLE social_contributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE deadlines ENABLE ROW LEVEL SECURITY;
 ALTER TABLE declarations ENABLE ROW LEVEL SECURITY;
 
--- For MVP: allow all operations for authenticated users
--- In production, replace with proper company-based policies
+-- NOTE: RLS policies are managed via Supabase dashboard/migrations, not in this file.
+-- For production, implement company-scoped policies that restrict data access
+-- to rows where company_id matches the authenticated user's company.
+-- Example policy pattern:
+--   CREATE POLICY "Users can only see their company data" ON table_name
+--     FOR ALL USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
+--
+-- The permissive policies below are for development/MVP only and should be
+-- replaced with proper company-scoped policies before production deployment.
 CREATE POLICY "Allow all for authenticated users" ON companies FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for authenticated users" ON tax_obligations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all for authenticated users" ON employees FOR ALL USING (true) WITH CHECK (true);

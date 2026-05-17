@@ -142,8 +142,6 @@ const mockDeadlines: Deadline[] = [
 /*  Fetches data from Supabase if configured, else uses mock data      */
 /* ------------------------------------------------------------------ */
 
-const DEMO_COMPANY_ID = "c0000000-0000-0000-0000-000000000001";
-
 export function useDZFiscData(companyId?: string | null) {
   const [taxObligations, setTaxObligations] = useState<TaxObligation[]>(mockTaxObligations);
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
@@ -151,10 +149,8 @@ export function useDZFiscData(companyId?: string | null) {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const effectiveCompanyId = companyId || DEMO_COMPANY_ID;
-
-  const fetchData = useCallback(async () => {
-    if (!isSupabaseConfigured()) {
+  const fetchData = useCallback(async (companyIdParam: string | null) => {
+    if (!isSupabaseConfigured() || !companyIdParam) {
       setIsConnected(false);
       return;
     }
@@ -165,17 +161,17 @@ export function useDZFiscData(companyId?: string | null) {
         getSupabase()
           .from("tax_obligations")
           .select("*")
-          .eq("company_id", effectiveCompanyId)
+          .eq("company_id", companyIdParam)
           .order("due_date", { ascending: false }),
         getSupabase()
           .from("employees")
           .select("*")
-          .eq("company_id", effectiveCompanyId)
+          .eq("company_id", companyIdParam)
           .eq("status", "active"),
         getSupabase()
           .from("deadlines")
           .select("*")
-          .eq("company_id", effectiveCompanyId)
+          .eq("company_id", companyIdParam)
           .order("deadline_date", { ascending: true }),
       ]);
 
@@ -194,15 +190,19 @@ export function useDZFiscData(companyId?: string | null) {
     } finally {
       setIsLoading(false);
     }
-  }, [effectiveCompanyId]);
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(companyId ?? null);
+  }, [fetchData, companyId]);
 
   // Mark a tax obligation as paid
   const markAsPaid = useCallback(
     async (id: string) => {
+      // Find the current tax obligation to get the tax_amount
+      const currentObligation = taxObligations.find((t) => t.id === id);
+      const taxAmount = currentObligation?.tax_amount ?? 0;
+
       // Optimistic update
       setTaxObligations((prev) =>
         prev.map((t) =>
@@ -212,13 +212,13 @@ export function useDZFiscData(companyId?: string | null) {
         )
       );
 
-      if (isSupabaseConfigured()) {
+      if (isSupabaseConfigured() && companyId) {
         try {
           const { error } = await getSupabase()
             .from("tax_obligations")
             .update({
               status: "paid",
-              paid_amount: 0, // will be set from current tax_amount
+              paid_amount: taxAmount,
               paid_at: new Date().toISOString(),
             })
             .eq("id", id);
@@ -227,11 +227,11 @@ export function useDZFiscData(companyId?: string | null) {
         } catch (err) {
           console.error("Failed to update in Supabase:", err);
           // Revert optimistic update
-          fetchData();
+          fetchData(companyId);
         }
       }
     },
-    [fetchData]
+    [fetchData, taxObligations, companyId]
   );
 
   // Mark a deadline as done
@@ -241,7 +241,7 @@ export function useDZFiscData(companyId?: string | null) {
         prev.map((d) => (d.id === id ? { ...d, status: "done" as const } : d))
       );
 
-      if (isSupabaseConfigured()) {
+      if (isSupabaseConfigured() && companyId) {
         try {
           const { error } = await getSupabase()
             .from("deadlines")
@@ -251,11 +251,11 @@ export function useDZFiscData(companyId?: string | null) {
           if (error) throw error;
         } catch (err) {
           console.error("Failed to update in Supabase:", err);
-          fetchData();
+          fetchData(companyId);
         }
       }
     },
-    [fetchData]
+    [fetchData, companyId]
   );
 
   return {

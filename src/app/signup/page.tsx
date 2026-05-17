@@ -29,8 +29,12 @@ export default function SignupPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères / يجب أن تتكون كلمة المرور من 6 أحرف على الأقل");
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères / يجب أن تتكون كلمة المرور من 8 أحرف على الأقل");
+      return;
+    }
+    if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une majuscule et un chiffre / يجب أن تحتوي كلمة المرور على حرف كبير ورقم على الأقل");
       return;
     }
 

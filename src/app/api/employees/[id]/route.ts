@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { validateOrigin, sanitizeBody } from "@/lib/api-security";
+
+const ALLOWED_FIELDS = [
+  'name', 'name_ar', 'role', 'salary',
+  'cnas_employer_rate', 'cnas_employee_rate', 'casnos_rate',
+  'start_date', 'status',
+];
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const { id } = await params;
     const supabase = await createSupabaseServerClient();
@@ -27,17 +38,19 @@ export async function PATCH(
     }
 
     const body = await request.json();
+    const sanitizedData = sanitizeBody(body, ALLOWED_FIELDS);
 
     const { data, error } = await supabase
       .from("employees")
-      .update(body)
+      .update(sanitizedData)
       .eq("id", id)
       .eq("company_id", profile.company_id)
       .select()
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Database error:", error);
+      return NextResponse.json({ error: "An internal error occurred" }, { status: 500 });
     }
 
     if (!data) {
@@ -54,6 +67,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  if (!validateOrigin(request)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   try {
     const { id } = await params;
     const supabase = await createSupabaseServerClient();
@@ -82,7 +99,8 @@ export async function DELETE(
       .eq("company_id", profile.company_id);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error("Database error:", error);
+      return NextResponse.json({ error: "An internal error occurred" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
