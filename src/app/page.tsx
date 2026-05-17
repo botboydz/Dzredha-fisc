@@ -24,10 +24,13 @@ import {
   Heart,
   Briefcase,
   Copy,
+  Database,
+  WifiOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { useDZFiscData } from "@/lib/use-dzfisc-data";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -35,19 +38,20 @@ import { Badge } from "@/components/ui/badge";
 
 type View = "dashboard" | "taxes" | "cnas" | "calendar";
 
-interface TaxObligation {
+/* Types are imported from Supabase lib — these are view-layer adapters */
+
+interface TaxRow {
   id: string;
   name: string;
   nameAr: string;
   rate: string;
   period: string;
-  dueDay: number;
   status: "paid" | "pending" | "overdue";
   amount: number;
   paidAmount?: number;
 }
 
-interface Employee {
+interface EmpRow {
   id: string;
   name: string;
   role: string;
@@ -56,7 +60,7 @@ interface Employee {
   casnosRate: number;
 }
 
-interface Deadline {
+interface DlRow {
   id: string;
   title: string;
   titleAr: string;
@@ -71,152 +75,56 @@ interface Deadline {
 /*  Mock Data                                                          */
 /* ------------------------------------------------------------------ */
 
-const taxObligations: TaxObligation[] = [
-  {
-    id: "TAP-2026-M05",
-    name: "TAP — Taxe sur l'Activité Professionnelle",
-    nameAr: "ض.م.م — ضريبة النشاط المهني",
-    rate: "1%",
-    period: "Mai 2026",
-    dueDay: 20,
-    status: "pending",
-    amount: 145000,
-  },
-  {
-    id: "TVA-2026-M05",
-    name: "TVA — Taxe sur la Valeur Ajoutée",
-    nameAr: "ر.ق — الرسم على القيمة المضافة",
-    rate: "19%",
-    period: "Mai 2026",
-    dueDay: 20,
-    status: "pending",
-    amount: 2755000,
-  },
-  {
-    id: "IBS-2026-Q1",
-    name: "IBS — Impôt sur les Bénéfices des Sociétés",
-    nameAr: "ض.أ.ش — ضريبة أرباح الشركات",
-    rate: "19%",
-    period: "T1 2026",
-    dueDay: 30,
-    status: "paid",
-    amount: 1850000,
-    paidAmount: 1850000,
-  },
-  {
-    id: "IRG-2026-M05",
-    name: "IRG — Impôt sur le Revenu Global",
-    nameAr: "ض.د.ع — ضريبة الدخل الإجمالي",
-    rate: "Progressif",
-    period: "Mai 2026",
-    dueDay: 20,
-    status: "pending",
-    amount: 890000,
-  },
-  {
-    id: "TAP-2026-M04",
-    name: "TAP — Taxe sur l'Activité Professionnelle",
-    nameAr: "ض.م.م — ضريبة النشاط المهني",
-    rate: "1%",
-    period: "Avril 2026",
-    dueDay: 20,
-    status: "paid",
-    amount: 132000,
-    paidAmount: 132000,
-  },
-  {
-    id: "TVA-2026-M04",
-    name: "TVA — Taxe sur la Valeur Ajoutée",
-    nameAr: "ر.ق — الرسم على القيمة المضافة",
-    rate: "19%",
-    period: "Avril 2026",
-    dueDay: 20,
-    status: "paid",
-    amount: 2480000,
-    paidAmount: 2480000,
-  },
-];
+/* ------------------------------------------------------------------ */
+/*  Supabase → View data transformers                                  */
+/* ------------------------------------------------------------------ */
 
-const employees: Employee[] = [
-  { id: "E001", name: "محمد بن أحمد", role: "Ingénieur", salary: 85000, cnasRate: 26, casnosRate: 0 },
-  { id: "E002", name: "Karim Bouzid", role: "Comptable", salary: 65000, cnasRate: 26, casnosRate: 0 },
-  { id: "E003", name: "فاطمة الزهراء", role: "Responsable RH", salary: 75000, cnasRate: 26, casnosRate: 0 },
-  { id: "E004", name: "Amine Khelifi", role: "Développeur", salary: 95000, cnasRate: 26, casnosRate: 0 },
-  { id: "E005", name: "سعاد مرابط", role: "Assistante", salary: 45000, cnasRate: 26, casnosRate: 0 },
-  { id: "E006", name: "ياسين حداد", role: "Chef de projet", salary: 110000, cnasRate: 26, casnosRate: 0 },
-];
+const TAX_NAMES: Record<string, { name: string; nameAr: string; rate: string }> = {
+  TAP: { name: "TAP — Taxe sur l'Activité Professionnelle", nameAr: "ض.م.م — ضريبة النشاط المهني", rate: "1%" },
+  TVA: { name: "TVA — Taxe sur la Valeur Ajoutée", nameAr: "ر.ق — الرسم على القيمة المضافة", rate: "19%" },
+  IBS: { name: "IBS — Impôt sur les Bénéfices des Sociétés", nameAr: "ض.أ.ش — ضريبة أرباح الشركات", rate: "19%" },
+  IRG: { name: "IRG — Impôt sur le Revenu Global", nameAr: "ض.د.ع — ضريبة الدخل الإجمالي", rate: "Progressif" },
+};
 
-const deadlines: Deadline[] = [
-  {
-    id: "D1",
-    title: "Déclaration TAP — Mai 2026",
-    titleAr: "تصريح ض.م.م — ماي 2026",
-    date: "2026-05-20",
-    type: "tax",
-    urgency: "urgent",
-    status: "pending",
-    amount: 145000,
-  },
-  {
-    id: "D2",
-    title: "Déclaration TVA — Mai 2026",
-    titleAr: "تصريح ر.ق — ماي 2026",
-    date: "2026-05-20",
-    type: "tax",
-    urgency: "urgent",
-    status: "pending",
-    amount: 2755000,
-  },
-  {
-    id: "D3",
-    title: "Déclaration IRG — Mai 2026",
-    titleAr: "تصريح ض.د.ع — ماي 2026",
-    date: "2026-05-20",
-    type: "tax",
-    urgency: "urgent",
-    status: "pending",
-    amount: 890000,
-  },
-  {
-    id: "D4",
-    title: "Cotisations CNAS — Mai 2026",
-    titleAr: "اشتراكات ص.و.ت.ش — ماي 2026",
-    date: "2026-05-31",
-    type: "social",
-    urgency: "soon",
-    status: "pending",
-    amount: 123500,
-  },
-  {
-    id: "D5",
-    title: "Versement IBS — T2 2026",
-    titleAr: "أداء ض.أ.ش — ت2 2026",
-    date: "2026-06-30",
-    type: "tax",
-    urgency: "normal",
-    status: "pending",
-    amount: 1850000,
-  },
-  {
-    id: "D6",
-    title: "Liasse fiscale annuelle 2025",
-    titleAr: "الملف الجبائي السنوي 2025",
-    date: "2026-04-30",
-    type: "filing",
-    urgency: "overdue",
-    status: "overdue",
-  },
-  {
-    id: "D7",
-    title: "Déclaration TVA — Juin 2026",
-    titleAr: "تصريح ر.ق — جوان 2026",
-    date: "2026-06-20",
-    type: "tax",
-    urgency: "normal",
-    status: "pending",
-    amount: 2500000,
-  },
-];
+function transformTaxes(taxes: { id: string; tax_type: string; period: string; tax_amount: number; paid_amount: number; status: string }[]): TaxRow[] {
+  return taxes.map((t) => {
+    const info = TAX_NAMES[t.tax_type] || { name: t.tax_type, nameAr: "", rate: "" };
+    return {
+      id: t.id,
+      name: info.name,
+      nameAr: info.nameAr,
+      rate: info.rate,
+      period: t.period,
+      status: t.status as TaxRow["status"],
+      amount: t.tax_amount,
+      paidAmount: t.paid_amount || undefined,
+    };
+  });
+}
+
+function transformEmployees(emps: { id: string; name: string; role: string | null; salary: number; cnas_employer_rate: number; casnos_rate: number }[]): EmpRow[] {
+  return emps.map((e) => ({
+    id: e.id.slice(0, 4).toUpperCase(),
+    name: e.name,
+    role: e.role || "—",
+    salary: e.salary,
+    cnasRate: e.cnas_employer_rate,
+    casnosRate: e.casnos_rate,
+  }));
+}
+
+function transformDeadlines(dls: { id: string; title: string; title_ar: string | null; deadline_date: string; deadline_type: string; urgency: string; status: string; amount: number | null }[]): DlRow[] {
+  return dls.map((d) => ({
+    id: d.id,
+    title: d.title,
+    titleAr: d.title_ar || "",
+    date: d.deadline_date,
+    type: d.deadline_type as DlRow["type"],
+    urgency: d.urgency as DlRow["urgency"],
+    status: d.status as DlRow["status"],
+    amount: d.amount || undefined,
+  }));
+}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -253,8 +161,7 @@ const navItems: { key: View; label: string; labelAr: string; icon: React.Element
   { key: "calendar", label: "Échéances", labelAr: "الآجال", icon: CalendarDays },
 ];
 
-function Sidebar({ active, onNavigate }: { active: View; onNavigate: (v: View) => void }) {
-  const overdue = deadlines.filter((d) => d.status === "overdue").length;
+function Sidebar({ active, onNavigate, overdueCount }: { active: View; onNavigate: (v: View) => void; overdueCount: number }) {
 
   return (
     <aside className="sidebar-bg w-64 min-h-screen flex flex-col shrink-0 hidden lg:flex">
@@ -286,9 +193,9 @@ function Sidebar({ active, onNavigate }: { active: View; onNavigate: (v: View) =
               <span className="font-medium text-[13px]">{item.label}</span>
               <span className="text-[9px] opacity-50">{item.labelAr}</span>
             </div>
-            {item.key === "calendar" && overdue > 0 && (
+            {item.key === "calendar" && overdueCount > 0 && (
               <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                {overdue}
+                {overdueCount}
               </span>
             )}
           </button>
@@ -339,7 +246,7 @@ function MobileNav({ active, onNavigate }: { active: View; onNavigate: (v: View)
 /*  Status Badge                                                       */
 /* ------------------------------------------------------------------ */
 
-function StatusBadge({ status }: { status: TaxObligation["status"] }) {
+function StatusBadge({ status }: { status: TaxRow["status"] }) {
   const styles: Record<string, string> = {
     paid: "bg-emerald-50 text-emerald-700 border-emerald-200",
     pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -369,7 +276,7 @@ function StatusBadge({ status }: { status: TaxObligation["status"] }) {
 /*  Urgency Badge                                                      */
 /* ------------------------------------------------------------------ */
 
-function UrgencyBadge({ urgency }: { urgency: Deadline["urgency"] }) {
+function UrgencyBadge({ urgency }: { urgency: DlRow["urgency"] }) {
   const styles: Record<string, string> = {
     overdue: "bg-red-50 text-red-700 border-red-200",
     urgent: "bg-orange-50 text-orange-700 border-orange-200",
@@ -394,7 +301,7 @@ function UrgencyBadge({ urgency }: { urgency: Deadline["urgency"] }) {
 /*  Dashboard View                                                     */
 /* ------------------------------------------------------------------ */
 
-function DashboardView() {
+function DashboardView({ taxObligations, employees, deadlines }: { taxObligations: TaxRow[]; employees: EmpRow[]; deadlines: DlRow[] }) {
   const totalPending = taxObligations
     .filter((t) => t.status === "pending")
     .reduce((s, t) => s + t.amount, 0);
@@ -709,7 +616,7 @@ function TaxesView() {
 /*  CNAS / CASNOS View                                                 */
 /* ------------------------------------------------------------------ */
 
-function CnasView() {
+function CnasView({ employees }: { employees: EmpRow[] }) {
   const totalPayroll = employees.reduce((s, e) => s + e.salary, 0);
   const totalCNAS = employees.reduce((s, e) => s + (e.salary * e.cnasRate) / 100, 0);
   const employeeCNAS = employees.reduce((s, e) => s + (e.salary * 9) / 100, 0);
@@ -820,7 +727,7 @@ function CnasView() {
 /*  Calendar View                                                      */
 /* ------------------------------------------------------------------ */
 
-function CalendarView() {
+function CalendarView({ deadlines }: { deadlines: DlRow[] }) {
   const sorted = [...deadlines].sort((a, b) => {
     const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3 };
     return urgencyOrder[a.urgency] - urgencyOrder[b.urgency] || daysUntil(a.date) - daysUntil(b.date);
@@ -926,11 +833,18 @@ function CalendarView() {
 
 export default function Home() {
   const [activeView, setActiveView] = useState<View>("dashboard");
+  const { taxObligations: rawTaxes, employees: rawEmps, deadlines: rawDls, isConnected, isLoading } = useDZFiscData();
+
+  // Transform Supabase data → view-layer format
+  const taxRows = useMemo(() => transformTaxes(rawTaxes), [rawTaxes]);
+  const empRows = useMemo(() => transformEmployees(rawEmps), [rawEmps]);
+  const dlRows = useMemo(() => transformDeadlines(rawDls), [rawDls]);
+  const overdueCount = dlRows.filter((d) => d.status === "overdue").length;
 
   return (
     <div className="min-h-screen flex bg-[#f0fdf4]">
       {/* Sidebar */}
-      <Sidebar active={activeView} onNavigate={setActiveView} />
+      <Sidebar active={activeView} onNavigate={setActiveView} overdueCount={overdueCount} />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -965,10 +879,33 @@ export default function Home() {
 
         {/* Page content */}
         <main className="flex-1 p-5 sm:p-8 overflow-y-auto custom-scrollbar">
-          {activeView === "dashboard" && <DashboardView />}
+          {/* Database connection banner */}
+          {!isConnected && !isLoading && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <WifiOff className="h-4 w-4 shrink-0" />
+              <span>Mode démo — données locales. Connectez Supabase pour les données en temps réel.</span>
+              <span className="ml-auto flex items-center gap-1 text-xs text-amber-600">
+                <Database className="h-3 w-3" /> Non connecté
+              </span>
+            </div>
+          )}
+          {isConnected && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <Database className="h-4 w-4 shrink-0" />
+              <span>Connecté à Supabase — données en temps réel.</span>
+              <span className="ml-auto flex items-center gap-1 text-xs text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Live
+              </span>
+            </div>
+          )}
+          {activeView === "dashboard" && <DashboardView taxObligations={taxRows} employees={empRows} deadlines={dlRows} />}
           {activeView === "taxes" && <TaxesView />}
-          {activeView === "cnas" && <CnasView />}
-          {activeView === "calendar" && <CalendarView />}
+          {activeView === "cnas" && <CnasView employees={empRows} />}
+          {activeView === "calendar" && <CalendarView deadlines={dlRows} />}
         </main>
       </div>
     </div>

@@ -67,3 +67,28 @@ Stage Summary:
 - CNAS at 26% employer + 9% employee with per-employee breakdown
 - Deadline tracking with urgency levels and penalty warnings
 - Green/emerald color scheme matching the Algerian flag theme
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Connect DZ-Fisc to Supabase and prepare for Vercel deployment
+
+Work Log:
+- Installed @supabase/supabase-js package
+- Created supabase/schema.sql with 6 tables: companies, tax_obligations, employees, social_contributions, deadlines, declarations + indexes + RLS policies
+- Created supabase/seed.sql with demo company data (SARL TechAlger) + tax obligations, employees, social contributions, and deadlines
+- Created src/lib/supabase.ts with lazy-initialized Supabase client + full TypeScript interfaces for all tables
+- Created src/lib/use-dzfisc-data.ts custom hook that fetches from Supabase when configured, falls back to mock data when not
+- Updated .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY placeholders
+- Created .env.example with documented env vars
+- Refactored page.tsx: view components now accept data as props, Supabase data is transformed through adapter functions
+- Added connection status banner: amber "Mode démo" when disconnected, green "Connecté à Supabase" when connected
+- Handled Supabase client creation error when env vars are empty (lazy init pattern)
+- All lint checks pass, dev server returning 200
+
+Stage Summary:
+- Supabase integration complete with graceful fallback to mock data
+- App works fully without Supabase configured (demo mode)
+- When Supabase env vars are set, app automatically fetches live data
+- Database schema, seed data, and TypeScript types are production-ready
+- Ready for Vercel deployment with env vars configuration
