@@ -1,16 +1,41 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/rate-limit";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `You are a senior construction and manufacturing estimator. You will be given a PDF blueprint, schematic, or RFP document. Your job is to extract EVERY actionable specification, material, dimension, quantity, and special note. Output ONLY a valid Markdown table with the following columns: | Item # | Description / Material | Dimensions / Size | Quantity | Special Notes |. If the document is blank or not a blueprint, output exactly: 'Error: Could not extract valid specifications from this document.' Do not include any conversational text before or after the table.`;
 
 export async function POST(request: Request) {
+  // Strict rate limit for AI endpoints
+  const rateLimit = withRateLimit(request, "ai");
+  if (!rateLimit.allowed) return rateLimit.response;
+
   try {
+    // Require authentication for PDF processing
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { pdfBase64 } = body;
 
     if (!pdfBase64 || typeof pdfBase64 !== "string") {
       return NextResponse.json(
         { error: "No PDF data provided. Please upload a valid PDF file." },
+        { status: 400 }
+      );
+    }
+
+    // Limit PDF size to 10MB to prevent abuse
+    const maxBase64Size = 10 * 1024 * 1024 * 1.37; // Base64 is ~37% larger
+    if (pdfBase64.length > maxBase64Size) {
+      return NextResponse.json(
+        { error: "PDF file is too large. Maximum size is 10MB." },
         { status: 400 }
       );
     }
@@ -54,7 +79,9 @@ export async function POST(request: Request) {
     const textBlock = message.content.find((block) => block.type === "text");
     const resultText = textBlock && textBlock.type === "text" ? textBlock.text : "";
 
-    return NextResponse.json({ result: resultText });
+    const response = NextResponse.json({ result: resultText });
+    rateLimit.headers.forEach((value, key) => response.headers.set(key, value));
+    return response;
   } catch (error: unknown) {
     console.error("Error processing PDF:", error);
 

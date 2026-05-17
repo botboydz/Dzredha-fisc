@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/rate-limit";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `You are a senior compliance auditor and regulatory expert. The user will describe their current infrastructure, tools, and security practices. Your job is to analyze their setup against common compliance frameworks (SOC 2, GDPR, HIPAA, ISO 27001) and identify gaps.
 
@@ -30,13 +32,35 @@ You must respond with ONLY a valid JSON object (no markdown, no code fences, no 
 Identify at least 5 and at most 15 gaps. Be specific about what's missing based on their described setup. Prioritize by real risk. Make remediation steps concrete and actionable.`;
 
 export async function POST(request: Request) {
+  // Strict rate limit for AI endpoints (expensive operations)
+  const rateLimit = withRateLimit(request, "ai");
+  if (!rateLimit.allowed) return rateLimit.response;
+
   try {
+    // Require authentication for AI analysis
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { description } = body;
 
     if (!description || typeof description !== "string" || description.trim().length < 10) {
       return NextResponse.json(
         { error: "Please provide a description of your infrastructure and practices (at least 10 characters)." },
+        { status: 400 }
+      );
+    }
+
+    // Limit input length to prevent token abuse
+    if (description.length > 10000) {
+      return NextResponse.json(
+        { error: "Description is too long. Please limit to 10,000 characters." },
         { status: 400 }
       );
     }
@@ -79,7 +103,9 @@ export async function POST(request: Request) {
       }, { status: 422 });
     }
 
-    return NextResponse.json({ result: parsed });
+    const response = NextResponse.json({ result: parsed });
+    rateLimit.headers.forEach((value, key) => response.headers.set(key, value));
+    return response;
   } catch (error: unknown) {
     console.error("Error analyzing compliance:", error);
 

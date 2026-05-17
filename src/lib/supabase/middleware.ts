@@ -47,7 +47,7 @@ export async function updateSession(request: NextRequest) {
   // Root page "/" is accessible in demo mode without auth
   const isRootPage = request.nextUrl.pathname === "/";
 
-  // API routes should not redirect
+  // API routes should not redirect (they handle auth themselves)
   const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
 
   // Static files and Next.js internals
@@ -77,12 +77,55 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Add security headers
+  // ── Security Headers ──────────────────────────────────────
+
+  // Prevent clickjacking: deny framing entirely
   supabaseResponse.headers.set('X-Frame-Options', 'DENY');
+
+  // Prevent MIME type sniffing
   supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff');
+
+  // Control referrer information leakage
   supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // Enable XSS filter in browsers (legacy but still useful)
   supabaseResponse.headers.set('X-XSS-Protection', '1; mode=block');
-  supabaseResponse.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  // Disable unnecessary browser features
+  supabaseResponse.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), payment=()'
+  );
+
+  // Content Security Policy — strict but allows Supabase, fonts, and our CDN
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js dev requires unsafe-inline/eval
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://z-cdn.chatglm.cn",
+    "connect-src 'self' https://htwxqoklsnyezddgmika.supabase.co https://api.anthropic.com",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join('; ');
+
+  supabaseResponse.headers.set('Content-Security-Policy', csp);
+
+  // Strict Transport Security (1 year, include subdomains)
+  // Only set in production to avoid issues with local dev
+  if (request.nextUrl.protocol === 'https:') {
+    supabaseResponse.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload'
+    );
+  }
+
+  // Cross-origin policies
+  supabaseResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  supabaseResponse.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
+  supabaseResponse.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
 
   return supabaseResponse;
 }
