@@ -121,3 +121,7 @@ export interface Declaration {
 export const isSupabaseConfigured = (): boolean => {
   return supabaseUrl.length > 0 && supabaseAnonKey.length > 0;
 };
+
+// Re-export browser client from new supabase module for convenience
+// Note: Import directly from "@/lib/supabase/client" or "@/lib/supabase/server" as needed.
+// Server client uses "next/headers" and must only be imported in server code.

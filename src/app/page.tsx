@@ -26,11 +26,14 @@ import {
   Copy,
   Database,
   WifiOff,
+  LogOut,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useDZFiscData } from "@/lib/use-dzfisc-data";
+import { useAuth } from "@/contexts/auth-context";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -70,10 +73,6 @@ interface DlRow {
   status: "done" | "pending" | "overdue";
   amount?: number;
 }
-
-/* ------------------------------------------------------------------ */
-/*  Mock Data                                                          */
-/* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
 /*  Supabase → View data transformers                                  */
@@ -150,6 +149,16 @@ function daysUntil(dateStr: string): number {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 }
 
+function getUserInitials(name: string | null | undefined, email: string | null | undefined): string {
+  if (name) {
+    const parts = name.split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  }
+  if (email) return email.slice(0, 2).toUpperCase();
+  return "U";
+}
+
 /* ------------------------------------------------------------------ */
 /*  Sidebar                                                            */
 /* ------------------------------------------------------------------ */
@@ -161,7 +170,7 @@ const navItems: { key: View; label: string; labelAr: string; icon: React.Element
   { key: "calendar", label: "Échéances", labelAr: "الآجال", icon: CalendarDays },
 ];
 
-function Sidebar({ active, onNavigate, overdueCount }: { active: View; onNavigate: (v: View) => void; overdueCount: number }) {
+function Sidebar({ active, onNavigate, overdueCount, userName, onLogout, isAuthenticated }: { active: View; onNavigate: (v: View) => void; overdueCount: number; userName?: string; onLogout: () => void; isAuthenticated: boolean }) {
 
   return (
     <aside className="sidebar-bg w-64 min-h-screen flex flex-col shrink-0 hidden lg:flex">
@@ -202,8 +211,27 @@ function Sidebar({ active, onNavigate, overdueCount }: { active: View; onNavigat
         ))}
       </nav>
 
-      {/* Bottom status */}
+      {/* Bottom section */}
       <div className="px-4 py-4 border-t border-white/10">
+        {/* User info */}
+        {isAuthenticated && (
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">
+              {getUserInitials(userName, undefined)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-white font-medium truncate">{userName || "Utilisateur"}</p>
+              <p className="text-[9px] text-emerald-300/50">Connecté / متصل</p>
+            </div>
+            <button
+              onClick={onLogout}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-emerald-300/50 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Déconnexion / تسجيل الخروج"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
         <div className="flex items-center gap-2 mb-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -365,7 +393,7 @@ function DashboardView({ taxObligations, employees, deadlines }: { taxObligation
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">CNAS ce mois</span>
           </div>
           <p className="text-2xl font-extrabold text-gray-900 dzd-badge animate-count">{formatShortDZD(totalCNAS)}</p>
-          <p className="text-[11px] text-gray-400 mt-1">{employees.length} employés — {((totalCNAS / totalPayroll) * 100).toFixed(0)}% de la masse</p>
+          <p className="text-[11px] text-gray-400 mt-1">{employees.length} employés — {totalPayroll > 0 ? ((totalCNAS / totalPayroll) * 100).toFixed(0) : 0}% de la masse</p>
         </div>
       </div>
 
@@ -520,7 +548,7 @@ function TaxesView() {
 
           <div>
             <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-              Chiffre d'affaires (HT) / رقم الأعمال
+              Chiffre d&apos;affaires (HT) / رقم الأعمال
             </label>
             <div className="relative">
               <input
@@ -833,7 +861,8 @@ function CalendarView({ deadlines }: { deadlines: DlRow[] }) {
 
 export default function Home() {
   const [activeView, setActiveView] = useState<View>("dashboard");
-  const { taxObligations: rawTaxes, employees: rawEmps, deadlines: rawDls, isConnected, isLoading } = useDZFiscData();
+  const { user, profile, company, companyId, isAuthenticated, loading: authLoading, logout } = useAuth();
+  const { taxObligations: rawTaxes, employees: rawEmps, deadlines: rawDls, isConnected, isLoading } = useDZFiscData(companyId);
 
   // Transform Supabase data → view-layer format
   const taxRows = useMemo(() => transformTaxes(rawTaxes), [rawTaxes]);
@@ -841,10 +870,25 @@ export default function Home() {
   const dlRows = useMemo(() => transformDeadlines(rawDls), [rawDls]);
   const overdueCount = dlRows.filter((d) => d.status === "overdue").length;
 
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = "/login";
+  };
+
+  const userName = profile?.full_name || user?.user_metadata?.full_name || null;
+  const userInitials = getUserInitials(userName, user?.email);
+
   return (
     <div className="min-h-screen flex bg-[#f0fdf4]">
       {/* Sidebar */}
-      <Sidebar active={activeView} onNavigate={setActiveView} overdueCount={overdueCount} />
+      <Sidebar
+        active={activeView}
+        onNavigate={setActiveView}
+        overdueCount={overdueCount}
+        userName={userName}
+        onLogout={handleLogout}
+        isAuthenticated={isAuthenticated}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -871,25 +915,67 @@ export default function Home() {
                 3
               </span>
             </button>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold">
-              SB
-            </div>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700 transition-colors cursor-pointer"
+                title={`${userName || "Utilisateur"} — Déconnexion / تسجيل الخروج`}
+              >
+                {userInitials}
+              </button>
+            ) : (
+              <a
+                href="/login"
+                className="flex h-8 items-center gap-1.5 rounded-full bg-emerald-600 px-3 text-white text-[10px] font-bold hover:bg-emerald-700 transition-colors"
+              >
+                <User className="h-3 w-3" />
+                Connexion
+              </a>
+            )}
           </div>
         </header>
 
         {/* Page content */}
         <main className="flex-1 p-5 sm:p-8 overflow-y-auto custom-scrollbar">
-          {/* Database connection banner */}
-          {!isConnected && !isLoading && (
-            <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              <WifiOff className="h-4 w-4 shrink-0" />
-              <span>Mode démo — données locales. Connectez Supabase pour les données en temps réel.</span>
-              <span className="ml-auto flex items-center gap-1 text-xs text-amber-600">
-                <Database className="h-3 w-3" /> Non connecté
+          {/* Auth + connection status banner */}
+          {isAuthenticated && isConnected && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <Database className="h-4 w-4 shrink-0" />
+              <span>Connecté en tant que <strong>{userName || user?.email}</strong> — données en temps réel.</span>
+              {company && (
+                <span className="hidden sm:inline text-emerald-600">· {company.name}</span>
+              )}
+              <span className="ml-auto flex items-center gap-1 text-xs text-emerald-600">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Live
               </span>
             </div>
           )}
-          {isConnected && (
+
+          {!isAuthenticated && !authLoading && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <WifiOff className="h-4 w-4 shrink-0" />
+              <span>Mode démo — données locales. <a href="/login" className="font-semibold underline hover:text-amber-900">Connectez-vous</a> pour accéder à vos données.</span>
+              <span className="ml-auto flex items-center gap-1 text-xs text-amber-600">
+                <Database className="h-3 w-3" /> Démo
+              </span>
+            </div>
+          )}
+
+          {isAuthenticated && !isConnected && !isLoading && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <WifiOff className="h-4 w-4 shrink-0" />
+              <span>Connecté mais Supabase non reachable — affichage des données locales.</span>
+              <span className="ml-auto flex items-center gap-1 text-xs text-amber-600">
+                <Database className="h-3 w-3" /> Hors ligne
+              </span>
+            </div>
+          )}
+
+          {isConnected && !isAuthenticated && (
             <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
               <Database className="h-4 w-4 shrink-0" />
               <span>Connecté à Supabase — données en temps réel.</span>
@@ -902,6 +988,7 @@ export default function Home() {
               </span>
             </div>
           )}
+
           {activeView === "dashboard" && <DashboardView taxObligations={taxRows} employees={empRows} deadlines={dlRows} />}
           {activeView === "taxes" && <TaxesView />}
           {activeView === "cnas" && <CnasView employees={empRows} />}

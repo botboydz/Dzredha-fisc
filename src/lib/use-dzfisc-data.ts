@@ -144,12 +144,14 @@ const mockDeadlines: Deadline[] = [
 
 const DEMO_COMPANY_ID = "c0000000-0000-0000-0000-000000000001";
 
-export function useDZFiscData() {
+export function useDZFiscData(companyId?: string | null) {
   const [taxObligations, setTaxObligations] = useState<TaxObligation[]>(mockTaxObligations);
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
   const [deadlines, setDeadlines] = useState<Deadline[]>(mockDeadlines);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const effectiveCompanyId = companyId || DEMO_COMPANY_ID;
 
   const fetchData = useCallback(async () => {
     if (!isSupabaseConfigured()) {
@@ -163,17 +165,17 @@ export function useDZFiscData() {
         getSupabase()
           .from("tax_obligations")
           .select("*")
-          .eq("company_id", DEMO_COMPANY_ID)
+          .eq("company_id", effectiveCompanyId)
           .order("due_date", { ascending: false }),
         getSupabase()
           .from("employees")
           .select("*")
-          .eq("company_id", DEMO_COMPANY_ID)
+          .eq("company_id", effectiveCompanyId)
           .eq("status", "active"),
         getSupabase()
           .from("deadlines")
           .select("*")
-          .eq("company_id", DEMO_COMPANY_ID)
+          .eq("company_id", effectiveCompanyId)
           .order("deadline_date", { ascending: true }),
       ]);
 
@@ -192,7 +194,7 @@ export function useDZFiscData() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [effectiveCompanyId]);
 
   useEffect(() => {
     fetchData();

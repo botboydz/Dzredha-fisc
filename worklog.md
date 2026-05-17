@@ -92,3 +92,41 @@ Stage Summary:
 - When Supabase env vars are set, app automatically fetches live data
 - Database schema, seed data, and TypeScript types are production-ready
 - Ready for Vercel deployment with env vars configuration
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Connect DZ-Fisc to Supabase and set up Vercel deployment
+
+Work Log:
+- Updated .env.local with user's Supabase credentials (URL + publishable/anon key)
+- Pushed database schema to Supabase via pg connection (eu-west-1 pooler): 6 tables (companies, tax_obligations, employees, social_contributions, deadlines, declarations) + indexes + RLS policies
+- Inserted seed data: 1 company (SARL TechAlger), 6 tax obligations, 6 employees, 2 social contributions, 7 deadlines
+- Updated RLS policies: added granular SELECT/INSERT/UPDATE/DELETE policies for both anon and authenticated users
+- Created profiles table with RLS for Supabase Auth (id→auth.users, email, full_name, company_id, role)
+- Created auto-profile trigger (handle_new_user) that creates profile on signup
+- Created src/lib/supabase/client.ts — browser singleton Supabase client using @supabase/ssr
+- Created src/lib/supabase/server.ts — server-side Supabase client with cookie handling
+- Created src/lib/supabase/middleware.ts — middleware client for auth token refresh
+- Created src/middleware.ts — route protection (redirect to /login if not auth, allow demo mode on /)
+- Created src/app/login/page.tsx — bilingual login page with DZ-Fisc emerald theme
+- Created src/app/signup/page.tsx — bilingual signup page with email confirmation flow
+- Created src/app/auth/callback/route.ts — handles email confirmation callback
+- Created src/app/auth/logout/route.ts — sign out and redirect
+- Created src/contexts/auth-context.tsx — auth provider with user/profile/company state, onAuthStateChange
+- Updated src/app/layout.tsx — wrapped with AuthProvider
+- Created 6 API routes with auth checks: tax-obligations, employees, deadlines (GET/POST + PATCH/DELETE)
+- Updated src/app/page.tsx — added auth awareness, user avatar/logout, connection status banners
+- Updated src/lib/use-dzfisc-data.ts — accepts companyId parameter for company-scoped queries
+- Fixed profiles query bug (id vs user_id column) in auth-context.tsx and all API routes
+- Created vercel.json for Vercel deployment
+- Verified Supabase REST API access (read companies, tax_obligations confirmed working)
+- Build compiles clean, all routes return 200, API returns 401 (expected without auth)
+
+Stage Summary:
+- DZ-Fisc is now fully connected to Supabase with live data
+- Full auth flow: signup → email confirm → login → access app with company-scoped data
+- Demo mode still works on / when not authenticated
+- 6 API routes for CRUD operations with proper auth checks
+- Vercel deployment config ready
+- All tables accessible via anon key (for demo mode) and authenticated users

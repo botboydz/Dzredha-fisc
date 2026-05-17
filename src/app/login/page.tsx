@@ -1,0 +1,177 @@
+"use client";
+
+import React, { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Landmark, Mail, Lock, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+
+function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) {
+        setError(authError.message);
+        return;
+      }
+
+      router.push(redirect);
+      router.refresh();
+    } catch {
+      setError("Une erreur inattendue s'est produite.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Card className="rounded-2xl border-emerald-100/60 shadow-xl shadow-emerald-500/5 bg-white/90 backdrop-blur-xl">
+      <CardContent className="pt-6">
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-gray-700 font-semibold text-xs">
+              Adresse e-mail / البريد الإلكتروني
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="vous@entreprise.dz"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-gray-700 font-semibold text-xs">
+              Mot de passe / كلمة المرور
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition-all hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Connexion...
+              </span>
+            ) : (
+              <>
+                Se connecter / تسجيل الدخول
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+
+      <CardFooter className="flex-col gap-3 pb-6">
+        <div className="w-full border-t border-gray-100 my-2" />
+        <p className="text-sm text-gray-500">
+          Pas encore de compte؟ / ليس لديك حساب؟{" "}
+          <a
+            href="/signup"
+            className="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
+          >
+            Créer un compte / إنشاء حساب
+          </a>
+        </p>
+        <a
+          href="/"
+          className="text-xs text-gray-400 hover:text-gray-500 transition-colors"
+        >
+          Continuer en mode démo / المتابعة في وضع العرض
+        </a>
+      </CardFooter>
+    </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f0fdf4] px-4">
+      {/* Background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-teal-100/40 blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo & brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 mb-4">
+            <Landmark className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900">
+            DZ-Fisc
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Conformité Fiscale & Sociale / الامتثال الضريبي والاجتماعي
+          </p>
+        </div>
+
+        {/* Login card with Suspense for useSearchParams */}
+        <Suspense fallback={
+          <Card className="rounded-2xl border-emerald-100/60 shadow-xl shadow-emerald-500/5 bg-white/90 backdrop-blur-xl">
+            <CardContent className="pt-6 flex items-center justify-center py-12">
+              <span className="h-6 w-6 border-2 border-emerald-300 border-t-emerald-600 rounded-full animate-spin" />
+            </CardContent>
+          </Card>
+        }>
+          <LoginForm />
+        </Suspense>
+
+        {/* Footer */}
+        <p className="text-center text-[10px] text-gray-400 mt-6">
+          DZ-Fisc v1.0 — Conformité fiscale algérienne automatisée
+        </p>
+      </div>
+    </div>
+  );
+}
