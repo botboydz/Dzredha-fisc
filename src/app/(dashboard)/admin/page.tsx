@@ -43,8 +43,6 @@ import {
   Cell,
 } from "recharts";
 import { DeclarationBadge } from "@/components/gov/status-badge";
-import { AdminSkeleton } from "@/components/skeletons";
-import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Data                                                          */
@@ -117,17 +115,11 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("reviews");
   const [selectedWilaya, setSelectedWilaya] = useState("Alger");
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
-  const loading = useLoadingState(500);
-
   // Overview stats
   const totalDeclarations = 1247;
   const pendingReviews = MOCK_PENDING_REVIEWS.length;
   const revenueCollected = 487500000;
   const fraudAlerts = MOCK_FRAUD_DATA.filter((f) => f.riskScore > 60).length;
-
-  if (loading) {
-    return <AdminSkeleton />;
-  }
 
   return (
     <div className="space-y-6 view-enter">

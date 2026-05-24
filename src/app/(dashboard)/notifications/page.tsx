@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { NotificationsSkeleton } from "@/components/skeletons";
-import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Notifications                                                 */
@@ -121,8 +119,6 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bgCo
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [filter, setFilter] = useState("all");
-  const loading = useLoadingState(500);
-
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "all") return true;
     if (filter === "unread") return !n.read;
@@ -144,10 +140,6 @@ export default function NotificationsPage() {
   const markAllAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
-
-  if (loading) {
-    return <NotificationsSkeleton />;
-  }
 
   return (
     <div className="space-y-6 view-enter">

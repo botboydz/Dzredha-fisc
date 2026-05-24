@@ -32,8 +32,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DocumentBadge } from "@/components/gov/status-badge";
-import { DocumentsSkeleton } from "@/components/skeletons";
-import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Documents                                                     */
@@ -201,17 +199,11 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const loading = useLoadingState(500);
-
   const filteredDocs = MOCK_DOCUMENTS.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || doc.type === categoryFilter;
     return matchesSearch && matchesCategory;
   });
-
-  if (loading) {
-    return <DocumentsSkeleton />;
-  }
 
   return (
     <div className="space-y-6 view-enter">

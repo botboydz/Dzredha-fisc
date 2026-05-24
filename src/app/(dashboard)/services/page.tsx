@@ -32,8 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ServicesSkeleton } from "@/components/skeletons";
-import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -617,12 +615,6 @@ function NotificationSettings() {
 /* ------------------------------------------------------------------ */
 
 export default function ServicesPage() {
-  const loading = useLoadingState(500);
-
-  if (loading) {
-    return <ServicesSkeleton />;
-  }
-
   return (
     <div className="space-y-10 view-enter">
       {/* Header */}

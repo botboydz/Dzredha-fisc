@@ -20,8 +20,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { DeclarationBadge } from "@/components/gov/status-badge";
-import { DeclarationsSkeleton } from "@/components/skeletons";
-import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -460,12 +458,6 @@ function DeclarationForm({ type }: { type: string }) {
 
 export default function DeclarationsPage() {
   const [activeType, setActiveType] = useState("TAP");
-  const loading = useLoadingState(500);
-
-  if (loading) {
-    return <DeclarationsSkeleton />;
-  }
-
   return (
     <div className="space-y-6 view-enter">
       {/* Header */}
