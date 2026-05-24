@@ -2,22 +2,22 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 
-export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-// Singleton for client-side usage
+// Singleton browser client — prevents "Multiple GoTrueClient instances" warning
 let _client: ReturnType<typeof createBrowserClient> | null = null;
 
 export function getSupabaseBrowserClient() {
-  if (!_client) {
-    _client = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  if (!_client && supabaseUrl && supabaseAnonKey) {
+    _client = createBrowserClient(supabaseUrl, supabaseAnonKey);
   }
   return _client;
+}
+
+// For convenience — alias
+export const createClient = getSupabaseBrowserClient;
+
+export function isSupabaseConfigured(): boolean {
+  return supabaseUrl.length > 0 && supabaseAnonKey.length > 0;
 }

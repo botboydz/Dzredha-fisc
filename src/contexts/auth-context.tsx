@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { User } from "@supabase/supabase-js";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured, type Company } from "@/lib/supabase";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { type Company } from "@/lib/supabase";
 
 interface Profile {
   id: string;
@@ -35,8 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabaseConfigured = useMemo(() => isSupabaseConfigured(), []);
-  const supabase = supabaseConfigured ? getSupabaseBrowserClient() : null;
+  const supabase = useMemo(() => isSupabaseConfigured() ? getSupabaseBrowserClient() : null, []);
   const initializedRef = useRef(false);
 
   const fetchProfileAndCompany = useCallback(

@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   getSupabase,
-  isSupabaseConfigured,
   type TaxObligation,
   type Employee,
   type Deadline,
 } from "@/lib/supabase";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 
 /* ------------------------------------------------------------------ */
 /*  Mock data fallback (used when Supabase is not connected)           */

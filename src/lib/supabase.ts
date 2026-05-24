@@ -1,25 +1,19 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+// Re-export the singleton browser client and helpers
+// This file provides types and the getSupabase function
+// The actual client instance is managed in @/lib/supabase/client.ts
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 
-// Lazy-initialize Supabase client only when env vars are configured
-let _supabase: SupabaseClient | null = null;
+export { isSupabaseConfigured } from "@/lib/supabase/client";
 
-export function getSupabase(): SupabaseClient {
-  if (!_supabase && supabaseUrl && supabaseAnonKey) {
-    _supabase = createClient(supabaseUrl, supabaseAnonKey);
-  }
-  if (!_supabase) {
+// Get the singleton Supabase client — throws if not configured
+export function getSupabase() {
+  const client = getSupabaseBrowserClient();
+  if (!client) {
     throw new Error("Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local");
   }
-  return _supabase;
+  return client;
 }
-
-// For convenience — use only when you know Supabase is configured
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : (null as unknown as ReturnType<typeof createClient>);
 
 // Type helpers for our database tables
 export interface Company {
@@ -116,12 +110,3 @@ export interface Declaration {
   created_at: string;
   updated_at: string;
 }
-
-// Check if Supabase is configured
-export const isSupabaseConfigured = (): boolean => {
-  return supabaseUrl.length > 0 && supabaseAnonKey.length > 0;
-};
-
-// Re-export browser client from new supabase module for convenience
-// Note: Import directly from "@/lib/supabase/client" or "@/lib/supabase/server" as needed.
-// Server client uses "next/headers" and must only be imported in server code.
