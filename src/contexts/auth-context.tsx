@@ -74,20 +74,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!supabase) {
+      // CRITICAL: If Supabase is not configured, we must still set loading=false
+      // Otherwise the entire app stays stuck on the loading screen forever
+      setLoading(false);
       return;
     }
 
     if (initializedRef.current) return;
     initializedRef.current = true;
 
+    // Safety timeout: ensure loading=false within 5 seconds even if Supabase hangs
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     // Get initial session
     supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
+      clearTimeout(safetyTimeout);
       setUser(currentUser);
       if (currentUser) {
         fetchProfileAndCompany(currentUser.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
+    }).catch(() => {
+      clearTimeout(safetyTimeout);
+      setLoading(false);
     });
 
     // Listen for auth changes
@@ -105,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, [supabase, fetchProfileAndCompany]);
