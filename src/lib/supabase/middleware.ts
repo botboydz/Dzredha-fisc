@@ -43,13 +43,17 @@ export async function updateSession(request: NextRequest) {
   supabaseResponse.headers.set('Cross-Origin-Resource-Policy', 'same-origin');
   supabaseResponse.headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
 
-  // ── Auth check (only if Supabase env vars are configured) ──
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // ── Auth check ──
+  // Fallback to hardcoded credentials if env vars aren't set (e.g. on Vercel without config)
+  const FALLBACK_URL = "https://htwxqoklsnyezddgmika.supabase.co";
+  const FALLBACK_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0d3hxb2tsc255ZXpkZGdtaWthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwNTU4NzcsImV4cCI6MjA5NDYzMTg3N30.NVw6PlG3gc3ISTlvv2xnEU1XksVTBqQELaT0m4A8oHA";
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_KEY;
   const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   const supabaseKey = supabaseAnonKey || supabasePublishableKey;
 
-  // If Supabase is not configured, allow all routes (demo mode) with security headers
+  // If Supabase is still not configured (shouldn't happen with fallbacks), allow all routes
   if (!supabaseUrl || !supabaseKey) {
     return supabaseResponse;
   }
