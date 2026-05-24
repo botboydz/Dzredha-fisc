@@ -115,9 +115,18 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("reviews");
   const [selectedWilaya, setSelectedWilaya] = useState("Alger");
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  const [reviews, setReviews] = useState(MOCK_PENDING_REVIEWS);
+
+  const handleApprove = (id: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+  };
+  const handleReject = (id: string) => {
+    setReviews((prev) => prev.filter((r) => r.id !== id));
+  };
+
   // Overview stats
   const totalDeclarations = 1247;
-  const pendingReviews = MOCK_PENDING_REVIEWS.length;
+  const pendingReviews = reviews.length;
   const revenueCollected = 487500000;
   const fraudAlerts = MOCK_FRAUD_DATA.filter((f) => f.riskScore > 60).length;
 
@@ -209,7 +218,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {MOCK_PENDING_REVIEWS.map((dec) => (
+                  {reviews.map((dec) => (
                     <tr key={dec.id}>
                       <td className="font-mono text-xs">{dec.id}</td>
                       <td>
@@ -233,6 +242,7 @@ export default function AdminPage() {
                           <Button
                             size="sm"
                             className="h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white gap-0.5 cursor-pointer px-2"
+                            onClick={() => handleApprove(dec.id)}
                           >
                             <CheckCircle2 className="h-3 w-3" />
                             Approuver
@@ -241,6 +251,7 @@ export default function AdminPage() {
                             size="sm"
                             variant="outline"
                             className="h-7 text-[10px] text-red-600 border-red-200 hover:bg-red-50 gap-0.5 cursor-pointer px-2"
+                            onClick={() => handleReject(dec.id)}
                           >
                             <XCircle className="h-3 w-3" />
                             Rejeter

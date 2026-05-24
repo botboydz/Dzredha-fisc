@@ -13,6 +13,7 @@ import {
   Bell,
   HelpCircle,
   Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -214,6 +215,9 @@ function TaxCalculator() {
 function AppointmentBooking() {
   const [selectedWilaya, setSelectedWilaya] = useState("Alger");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedMotif, setSelectedMotif] = useState("");
+  const [bookingStatus, setBookingStatus] = useState<"idle" | "booking" | "success">("idle");
 
   const timeSlots = ["08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "14:00", "14:30", "15:00", "15:30"];
 
@@ -245,12 +249,12 @@ function AppointmentBooking() {
 
           <div>
             <Label className="text-xs font-semibold text-gray-500">Date souhaitée / التاريخ المطلوب</Label>
-            <Input type="date" className="mt-1 h-10 rounded-xl" />
+            <Input type="date" className="mt-1 h-10 rounded-xl" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </div>
 
           <div>
             <Label className="text-xs font-semibold text-gray-500">Motif / السبب</Label>
-            <Select>
+            <Select value={selectedMotif} onValueChange={setSelectedMotif}>
               <SelectTrigger className="mt-1 h-10 rounded-xl cursor-pointer">
                 <SelectValue placeholder="Sélectionner..." />
               </SelectTrigger>
@@ -281,8 +285,25 @@ function AppointmentBooking() {
               </button>
             ))}
           </div>
-          <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" disabled={!selectedSlot}>
-            Confirmer le Rendez-vous / تأكيد الموعد
+          <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" disabled={!selectedSlot || !selectedDate || bookingStatus === "booking"} onClick={async () => {
+            if (!selectedSlot || !selectedDate) return;
+            setBookingStatus("booking");
+            await new Promise((r) => setTimeout(r, 1500));
+            setBookingStatus("success");
+            setTimeout(() => {
+              setBookingStatus("idle");
+              setSelectedSlot(null);
+              setSelectedDate("");
+              setSelectedMotif("");
+            }, 3000);
+          }}>
+            {bookingStatus === "booking" ? (
+              <><span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Réservation...</>
+            ) : bookingStatus === "success" ? (
+              <><CheckCircle2 className="h-4 w-4" /> Rendez-vous confirmé!</>
+            ) : (
+              "Confirmer le Rendez-vous / تأكيد الموعد"
+            )}
           </Button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Landmark, Mail, Lock, User, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,9 +112,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30 mb-4">
-            <Landmark className="h-8 w-8 text-white" />
-          </div>
+          <Image src="/logo.png" alt="DZ-Fisc" width={64} height={64} className="rounded-2xl shadow-lg" />
           <h1 className="text-2xl font-extrabold text-gray-900">
             DZ-Fisc
           </h1>

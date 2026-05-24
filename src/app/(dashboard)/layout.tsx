@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -129,9 +130,7 @@ function SidebarContent({
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-white/10 shrink-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/30">
-          <Landmark className="h-4.5 w-4.5 text-white" />
-        </div>
+        <Image src="/logo.png" alt="DZ-Fisc" width={36} height={36} className="rounded-xl" />
         <div>
           <span className="text-base font-bold text-white tracking-tight">DZ-Fisc</span>
           <p className="text-[9px] text-emerald-300/60 font-medium">
@@ -223,6 +222,7 @@ export default function DashboardLayout({
   const { profile, logout, loading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [lang, setLang] = useState<"fr" | "ar">("fr");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const userName = profile?.full_name;
   const unreadNotifications = 3;
@@ -282,7 +282,8 @@ export default function DashboardLayout({
                 <Input
                   placeholder="Rechercher déclarations, impôts, documents..."
                   className="pl-9 h-8 bg-white/10 border-white/10 text-white placeholder:text-emerald-300/40 text-xs rounded-lg focus:bg-white/15 focus:border-emerald-400/50"
-                  readOnly
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>

@@ -190,7 +190,7 @@ export default function DashboardPage() {
       0
     );
 
-    const pendingDocs = 3; // Mock
+    const pendingDocs = deadlines.filter(d => d.status === "pending").length;
 
     const complianceScore = Math.round(
       (taxObligations.filter((t) => t.status === "paid").length /
@@ -272,6 +272,25 @@ export default function DashboardPage() {
     });
   }, [taxObligations]);
 
+  const exportToCSV = () => {
+    const headers = ["Statut", "Impôt", "Période", "Échéance", "Montant"];
+    const rows = taxObligations.map((t) => [
+      t.status,
+      t.tax_type,
+      t.period,
+      t.due_date,
+      t.tax_amount.toString(),
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dz-fisc-obligations-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return <DashboardSkeleton />;
   }
@@ -308,7 +327,7 @@ export default function DashboardPage() {
               Nouvelle Déclaration
             </Link>
           </Button>
-          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer">
+          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
             <Download className="h-3.5 w-3.5" />
             Export
           </Button>
@@ -447,7 +466,7 @@ export default function DashboardPage() {
               الإيرادات والضرائب الشهرية — Exercice 2026
             </p>
           </div>
-          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer">
+          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
             <Download className="h-3 w-3" />
             Export
           </Button>
@@ -510,7 +529,7 @@ export default function DashboardPage() {
             <h2 className="gov-section-title">Obligations Fiscales</h2>
             <p className="gov-section-subtitle">الالتزامات الجبائية</p>
           </div>
-          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer">
+          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
             <Download className="h-3 w-3" />
             Export CSV
           </Button>

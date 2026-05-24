@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   FolderOpen,
   Search,
@@ -152,6 +152,26 @@ const TYPE_COLORS: Record<string, string> = {
 function DocumentDetailDialog({ doc }: { doc: typeof MOCK_DOCUMENTS[0] }) {
   const Icon = TYPE_ICONS[doc.type] || File;
 
+  const handleDownload = (d: typeof MOCK_DOCUMENTS[0]) => {
+    const content = `Document: ${d.title}\nType: ${d.type}\nDate: ${d.date}\nStatut: ${d.status}\n\nCe document est une simulation DZ-Fisc.`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${d.id}-${d.title.replace(/\s+/g, "-")}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = (d: typeof MOCK_DOCUMENTS[0]) => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`<html><head><title>${d.title}</title></head><body style="font-family:sans-serif;padding:40px"><h1>${d.title}</h1><p>${d.titleAr}</p><p>Date: ${d.date}</p><p>Taille: ${d.size}</p><p>Statut: ${d.status}</p><hr><p>Document généré par DZ-Fisc — Direction Générale des Impôts</p></body></html>`);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -174,14 +194,14 @@ function DocumentDetailDialog({ doc }: { doc: typeof MOCK_DOCUMENTS[0] }) {
             <span>{doc.size}</span>
           </div>
           <DocumentBadge status={doc.status} />
-          <div className="qr-placeholder mt-4">QR</div>
+          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center mx-auto mt-4"><span className="text-[8px] font-bold text-gray-400 text-center">DZ-Fisc<br/>Vérifié</span></div>
         </div>
         <div className="flex gap-2 mt-4">
-          <Button className="flex-1 bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer">
+          <Button className="flex-1 bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
             <Download className="h-3.5 w-3.5" />
             Télécharger / تحميل
           </Button>
-          <Button variant="outline" className="flex-1 text-xs gap-1 cursor-pointer">
+          <Button variant="outline" className="flex-1 text-xs gap-1 cursor-pointer" onClick={() => handlePrint(doc)}>
             <Eye className="h-3.5 w-3.5" />
             Imprimer / طباعة
           </Button>
@@ -199,6 +219,40 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [uploadedFiles, setUploadedFiles] = useState<{name: string; size: string; date: string}[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDownload = (doc: typeof MOCK_DOCUMENTS[0]) => {
+    const content = `Document: ${doc.title}\nType: ${doc.type}\nDate: ${doc.date}\nStatut: ${doc.status}\n\nCe document est une simulation DZ-Fisc.`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${doc.id}-${doc.title.replace(/\s+/g, "-")}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = (doc: typeof MOCK_DOCUMENTS[0]) => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`<html><head><title>${doc.title}</title></head><body style="font-family:sans-serif;padding:40px"><h1>${doc.title}</h1><p>${doc.titleAr}</p><p>Date: ${doc.date}</p><p>Taille: ${doc.size}</p><p>Statut: ${doc.status}</p><hr><p>Document généré par DZ-Fisc — Direction Générale des Impôts</p></body></html>`);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files).map((f) => ({
+        name: f.name,
+        size: f.size > 1024 * 1024 ? `${(f.size / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(f.size / 1024)} KB`,
+        date: new Date().toISOString().slice(0, 10),
+      }));
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
   const filteredDocs = MOCK_DOCUMENTS.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || doc.type === categoryFilter;
@@ -262,15 +316,28 @@ export default function DocumentsPage() {
       </div>
 
       {/* Upload Drop Zone */}
-      <div className="drop-zone">
+      <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
+      <div className="drop-zone cursor-pointer" onClick={() => fileInputRef.current?.click()}>
         <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
         <p className="text-sm font-semibold text-gray-500">Glisser-déposer vos documents ici</p>
         <p className="text-[10px] text-gray-400 mt-1">PDF, JPEG, PNG — Max 10 MB par fichier / إسقاط الوثائق هنا</p>
-        <Button variant="outline" size="sm" className="mt-3 text-xs gap-1 cursor-pointer">
+        <Button variant="outline" size="sm" className="mt-3 text-xs gap-1 cursor-pointer" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
           <Upload className="h-3 w-3" />
           Parcourir / تصفح
         </Button>
       </div>
+      {uploadedFiles.length > 0 && (
+        <div className="space-y-1">
+          {uploadedFiles.map((f, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+              <FileText className="h-3 w-3 text-emerald-600" />
+              <span className="text-emerald-700 font-medium">{f.name}</span>
+              <span className="text-gray-400">{f.size}</span>
+              <button onClick={() => setUploadedFiles(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-400 hover:text-red-600 cursor-pointer">✕</button>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Document Grid */}
       {viewMode === "grid" ? (
@@ -285,7 +352,7 @@ export default function DocumentsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <DocumentBadge status={doc.status} />
-                    <div className="qr-placeholder">QR</div>
+                    <div className="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center"><span className="text-[6px] font-bold text-gray-400 text-center">DZ-Fisc<br/>Vérifié</span></div>
                   </div>
                 </div>
                 <div>
@@ -297,7 +364,7 @@ export default function DocumentsPage() {
                   <span>{doc.size}</span>
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <Button variant="outline" size="sm" className="flex-1 h-7 text-[10px] gap-1 cursor-pointer">
+                  <Button variant="outline" size="sm" className="flex-1 h-7 text-[10px] gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
                     <Download className="h-3 w-3" />
                     Télécharger
                   </Button>
@@ -326,7 +393,7 @@ export default function DocumentsPage() {
                 </div>
                 <DocumentBadge status={doc.status} />
                 <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 cursor-pointer">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 cursor-pointer" onClick={() => handleDownload(doc)}>
                     <Download className="h-3.5 w-3.5" />
                   </Button>
                   <DocumentDetailDialog doc={doc} />

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Landmark,
@@ -114,9 +115,7 @@ export default function LandingPage() {
       <header className="gov-header-bar">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/30">
-              <Landmark className="h-4.5 w-4.5 text-white" />
-            </div>
+            <Image src="/logo.png" alt="DZ-Fisc" width={36} height={36} className="rounded-xl" />
             <div>
               <span className="text-base font-bold text-white tracking-tight">DZ-Fisc</span>
               <p className="text-[9px] text-emerald-300/60 font-medium">
@@ -324,9 +323,9 @@ export default function LandingPage() {
           <div className="mt-4 flex items-center justify-center gap-4 text-[9px] text-emerald-400/30">
             <span>© 2026 DZ-Fisc</span>
             <span>|</span>
-            <span>Mentions légales / الإشعارات القانونية</span>
+            <a href="#" className="hover:text-emerald-300/50 transition-colors">Mentions légales / الإشعارات القانونية</a>
             <span>|</span>
-            <span>Confidentialité / الخصوصية</span>
+            <a href="#" className="hover:text-emerald-300/50 transition-colors">Confidentialité / الخصوصية</a>
           </div>
         </div>
       </footer>

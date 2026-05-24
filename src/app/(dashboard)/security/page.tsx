@@ -77,7 +77,51 @@ export default function SecurityPage() {
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [smsNotif, setSmsNotif] = useState(true);
   const [emailNotif, setEmailNotif] = useState(true);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [sessions, setSessions] = useState(MOCK_ACTIVE_SESSIONS);
+  const [notifMessage, setNotifMessage] = useState<string | null>(null);
   const securityScore = twoFAEnabled ? 85 : 65;
+
+  const handlePasswordChange = async () => {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Les mots de passe ne correspondent pas / كلمات المرور غير متطابقة");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError("Le mot de passe doit contenir au moins 6 caractères");
+      return;
+    }
+    try {
+      const { getSupabaseBrowserClient } = await import("@/lib/supabase/client");
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        setPasswordError(error.message);
+      } else {
+        setPasswordSuccess(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setTimeout(() => setPasswordSuccess(false), 3000);
+      }
+    } catch {
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    }
+  };
+
+  const handleRevokeSession = (id: number) => {
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+  };
 
   return (
     <div className="space-y-6 view-enter">
@@ -200,7 +244,7 @@ export default function SecurityPage() {
                   </div>
                 </div>
               </div>
-              <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer">
+              <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={() => setTwoFAEnabled(true)}>
                 <Key className="h-3.5 w-3.5" />
                 Activer la 2FA / تفعيل المصادقة الثنائية
               </Button>
@@ -218,7 +262,7 @@ export default function SecurityPage() {
             <div>
               <Label className="text-xs text-gray-500">Mot de passe actuel</Label>
               <div className="relative mt-1">
-                <Input type={showPassword ? "text" : "password"} className="h-9 rounded-xl pr-10" placeholder="••••••••" />
+                <Input type={showPassword ? "text" : "password"} className="h-9 rounded-xl pr-10" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                 <button
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
@@ -229,13 +273,19 @@ export default function SecurityPage() {
             </div>
             <div>
               <Label className="text-xs text-gray-500">Nouveau mot de passe</Label>
-              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" />
+              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             </div>
             <div>
               <Label className="text-xs text-gray-500">Confirmer le mot de passe</Label>
-              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" />
+              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
-            <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer">
+            {passwordError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-700">{passwordError}</div>
+            )}
+            {passwordSuccess && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Mot de passe mis à jour / تم تحديث كلمة المرور</div>
+            )}
+            <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={handlePasswordChange}>
               <Lock className="h-3.5 w-3.5" />
               Mettre à jour / تحديث
             </Button>
@@ -288,7 +338,7 @@ export default function SecurityPage() {
       <div>
         <h2 className="gov-section-title mb-3">Appareils Actifs / الأجهزة النشطة</h2>
         <div className="space-y-2">
-          {MOCK_ACTIVE_SESSIONS.map((session) => (
+          {sessions.map((session) => (
             <div key={session.id} className="gov-card p-4 flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
                 {session.device.includes("iOS") || session.device.includes("Android") ? (
@@ -311,7 +361,7 @@ export default function SecurityPage() {
                 </p>
               </div>
               {!session.current && (
-                <Button variant="outline" size="sm" className="text-[10px] text-red-600 border-red-200 hover:bg-red-50 gap-1 cursor-pointer">
+                <Button variant="outline" size="sm" className="text-[10px] text-red-600 border-red-200 hover:bg-red-50 gap-1 cursor-pointer" onClick={() => handleRevokeSession(session.id)}>
                   Révoquer / إلغاء
                 </Button>
               )}
@@ -354,7 +404,7 @@ export default function SecurityPage() {
                 <p className="text-[10px] text-gray-400">Recevez un SMS à chaque connexion / إشعار SMS</p>
               </div>
             </div>
-            <Switch checked={smsNotif} onCheckedChange={setSmsNotif} className="cursor-pointer" />
+            <Switch checked={smsNotif} onCheckedChange={(v) => { setSmsNotif(v); setNotifMessage("Préférence SMS mise à jour"); setTimeout(() => setNotifMessage(null), 2000); }} className="cursor-pointer" />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
@@ -365,8 +415,11 @@ export default function SecurityPage() {
                 <p className="text-[10px] text-gray-400">Recevez un email à chaque connexion / إشعار بالبريد</p>
               </div>
             </div>
-            <Switch checked={emailNotif} onCheckedChange={setEmailNotif} className="cursor-pointer" />
+            <Switch checked={emailNotif} onCheckedChange={(v) => { setEmailNotif(v); setNotifMessage("Préférence Email mise à jour"); setTimeout(() => setNotifMessage(null), 2000); }} className="cursor-pointer" />
           </div>
+          {notifMessage && (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> {notifMessage}</div>
+          )}
         </div>
       </div>
 

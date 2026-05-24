@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   FileText,
   ChevronLeft,
@@ -99,11 +99,14 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 /*  Declaration Form                                                   */
 /* ------------------------------------------------------------------ */
 
-function DeclarationForm({ type }: { type: string }) {
+function DeclarationForm({ type, declarations, setDeclarations }: { type: string; declarations: typeof MOCK_DECLARATIONS; setDeclarations: React.Dispatch<React.SetStateAction<typeof MOCK_DECLARATIONS>> }) {
   const { company, profile } = useAuth();
   const [step, setStep] = useState(1);
   const [agreed, setAgreed] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form data state
   const [formData, setFormData] = useState({
@@ -388,11 +391,28 @@ function DeclarationForm({ type }: { type: string }) {
           </div>
 
           {/* Upload area */}
-          <div className="drop-zone">
+          <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => {
+            const files = e.target.files;
+            if (files) {
+              setUploadedFiles((prev) => [...prev, ...Array.from(files)]);
+            }
+          }} />
+          <div className="drop-zone cursor-pointer" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-8 w-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-500">Glisser-déposer vos justificatifs</p>
             <p className="text-[10px] text-gray-400">PDF, JPEG, PNG — Max 10 MB / إسقاط المستندات هنا</p>
           </div>
+          {uploadedFiles.length > 0 && (
+            <div className="space-y-1">
+              {uploadedFiles.map((f, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                  <FileText className="h-3 w-3 text-emerald-600" />
+                  <span className="text-emerald-700 font-medium">{f.name}</span>
+                  <button onClick={() => setUploadedFiles(prev => prev.filter((_, j) => j !== i))} className="ml-auto text-red-400 hover:text-red-600 cursor-pointer">✕</button>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Agreement checkbox */}
           <div className="flex items-start gap-3">
@@ -423,7 +443,19 @@ function DeclarationForm({ type }: { type: string }) {
         </Button>
 
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-1 cursor-pointer text-xs">
+          <Button variant="outline" className="gap-1 cursor-pointer text-xs" onClick={() => {
+            const newDec = {
+              id: `DEC-${String(declarations.length + 1).padStart(3, "0")}`,
+              type,
+              period: "Mai 2026",
+              status: "draft" as const,
+              amount: calculations.amount,
+              date: "",
+            };
+            setDeclarations((prev) => [...prev, newDec]);
+            setAutoSaveStatus("saved");
+            setTimeout(() => setAutoSaveStatus("idle"), 3000);
+          }}>
             <Save className="h-3.5 w-3.5" />
             Brouillon
           </Button>
@@ -439,11 +471,34 @@ function DeclarationForm({ type }: { type: string }) {
             </Button>
           ) : (
             <Button
-              disabled={!agreed}
+              disabled={!agreed || submitStatus === "submitting"}
+              onClick={async () => {
+                setSubmitStatus("submitting");
+                await new Promise((r) => setTimeout(r, 1500));
+                const newDec = {
+                  id: `DEC-${String(declarations.length + 1).padStart(3, "0")}`,
+                  type,
+                  period: "Mai 2026",
+                  status: "submitted" as const,
+                  amount: calculations.amount,
+                  date: new Date().toISOString().slice(0, 10),
+                };
+                setDeclarations((prev) => [...prev, newDec]);
+                setSubmitStatus("success");
+                setTimeout(() => {
+                  setSubmitStatus("idle");
+                  setStep(1);
+                }, 2000);
+              }}
               className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white gap-1 cursor-pointer"
             >
-              <Check className="h-4 w-4" />
-              Soumettre / إرسال
+              {submitStatus === "submitting" ? (
+                <><span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Envoi...</>
+              ) : submitStatus === "success" ? (
+                <><Check className="h-4 w-4" /> Soumis!</>
+              ) : (
+                <><Check className="h-4 w-4" /> Soumettre / إرسال</>
+              )}
             </Button>
           )}
         </div>
@@ -458,6 +513,27 @@ function DeclarationForm({ type }: { type: string }) {
 
 export default function DeclarationsPage() {
   const [activeType, setActiveType] = useState("TAP");
+  const [declarations, setDeclarations] = useState(MOCK_DECLARATIONS);
+
+  const exportToCSV = () => {
+    const headers = ["Réf", "Type", "Période", "Statut", "Montant", "Date"];
+    const rows = declarations.map((d) => [
+      d.id,
+      d.type,
+      d.period,
+      d.status,
+      d.amount.toString(),
+      d.date,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dz-fisc-declarations-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   return (
     <div className="space-y-6 view-enter">
       {/* Header */}
@@ -469,7 +545,7 @@ export default function DeclarationsPage() {
           </h1>
           <p className="text-xs text-gray-500 mt-1">Créez et gérez vos déclarations fiscales</p>
         </div>
-        <Button className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer">
+        <Button className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
           <Download className="h-3.5 w-3.5" />
           Export
         </Button>
@@ -492,7 +568,7 @@ export default function DeclarationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_DECLARATIONS.map((dec) => (
+                {declarations.map((dec) => (
                   <tr key={dec.id}>
                     <td className="font-mono text-xs">{dec.id}</td>
                     <td className="font-semibold text-sm">{dec.type}</td>
@@ -527,7 +603,7 @@ export default function DeclarationsPage() {
       </div>
 
       {/* Multi-step form */}
-      <DeclarationForm type={activeType} />
+      <DeclarationForm type={activeType} declarations={declarations} setDeclarations={setDeclarations} />
     </div>
   );
 }
