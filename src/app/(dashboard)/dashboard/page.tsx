@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -17,6 +17,10 @@ import {
   RefreshCw,
   Calculator,
   FolderOpen,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  Lightbulb,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -31,6 +35,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import { useDZFiscData } from "@/lib/use-dzfisc-data";
 import { useAuth } from "@/contexts/auth-context";
@@ -78,7 +85,7 @@ function ComplianceRing({ score }: { score: number }) {
   const radius = 45;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 80 ? "#16A34A" : score >= 60 ? "#D97706" : "#DC2626";
+  const color = score >= 80 ? "#16A34A" : score >= 60 ? "#D97706" : "#E54D4D";
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -108,7 +115,7 @@ function ComplianceRing({ score }: { score: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Stat Card Component                                                */
+/*  Stat Card Component — Enhanced                                     */
 /* ------------------------------------------------------------------ */
 
 function StatCard({
@@ -120,6 +127,10 @@ function StatCard({
   value,
   subtitle,
   delay,
+  trend,
+  trendLabel,
+  progress,
+  progressColor,
 }: {
   accent: string;
   iconBg: string;
@@ -129,21 +140,101 @@ function StatCard({
   value: string;
   subtitle: React.ReactNode;
   delay: string;
+  trend?: { value: string; up: boolean };
+  trendLabel?: string;
+  progress?: number;
+  progressColor?: string;
 }) {
   return (
-    <div className={`gov-card ${accent} animate-fade-in-up ${delay}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>
-          <Icon className={`h-4 w-4 ${iconColor}`} />
+    <div className={`stat-card ${accent} animate-fade-in-up ${delay}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${iconBg} shadow-soft`}>
+            <Icon className={`h-4.5 w-4.5 ${iconColor}`} />
+          </div>
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            {label}
+          </span>
         </div>
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-          {label}
-        </span>
+        {trend && (
+          <div className={`flex items-center gap-0.5 text-[10px] font-bold ${trend.up ? "text-emerald-600" : "text-red-500"}`}>
+            {trend.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+            {trend.value}
+          </div>
+        )}
       </div>
       <p className="text-xl font-extrabold dzd-badge animate-count">
         {value}
       </p>
       <div className="text-[11px] mt-1">{subtitle}</div>
+      {progress !== undefined && (
+        <div className="stat-card-progress">
+          <div
+            className="stat-card-progress-fill"
+            style={{ width: `${progress}%`, backgroundColor: progressColor || "#16A34A" }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Activity Timeline                                                  */
+/* ------------------------------------------------------------------ */
+
+const MOCK_ACTIVITY = [
+  { id: 1, text: "Déclaration TVA soumise", textAr: "تم تقديم تصريح ر.ق", time: "il y a 2h", color: "#16A34A", bgColor: "bg-emerald-50" },
+  { id: 2, text: "Paiement TAP confirmé", textAr: "تم تأكيد دفع ض.م.م", time: "il y a 1j", color: "#0C4A2E", bgColor: "bg-emerald-50" },
+  { id: 3, text: "Document IBS téléchargé", textAr: "تم تحميل وثيقة ض.أ.ش", time: "il y a 2j", color: "#B8860B", bgColor: "bg-amber-50" },
+  { id: 4, text: "Rappel échéance IRG", textAr: "تذكير آجال ض.د.ع", time: "il y a 3j", color: "#EA580C", bgColor: "bg-orange-50" },
+  { id: 5, text: "Score de conformité mis à jour", textAr: "تم تحديث نقاط الامتثال", time: "il y a 5j", color: "#0C4A2E", bgColor: "bg-emerald-50" },
+];
+
+function ActivityTimeline() {
+  return (
+    <div className="gov-card p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="gov-section-title">Activité Récente / النشاط الأخير</h2>
+          <p className="gov-section-subtitle">Dernières actions sur votre compte</p>
+        </div>
+        <Clock className="h-4 w-4 text-gray-300" />
+      </div>
+      <div className="space-y-0">
+        {MOCK_ACTIVITY.map((item) => (
+          <div key={item.id} className="timeline-item py-2">
+            <div className="timeline-dot" style={{ borderColor: item.color }} />
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-800">{item.text}</p>
+                <p className="text-[10px] text-gray-400">{item.textAr}</p>
+              </div>
+              <span className="text-[10px] text-gray-400 whitespace-nowrap ml-4">{item.time}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Contextual Tip                                                     */
+/* ------------------------------------------------------------------ */
+
+function ContextualTip() {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 shrink-0">
+        <Lightbulb className="h-4 w-4 text-amber-600" />
+      </div>
+      <div>
+        <p className="text-xs font-bold text-amber-800">Astuce / نصيحة</p>
+        <p className="text-[11px] text-amber-700 mt-0.5">
+          Vos déclarations TAP sont dues dans 3 jours. Soumettez-les à temps pour éviter les pénalités de 10%.
+        </p>
+      </div>
     </div>
   );
 }
@@ -156,6 +247,7 @@ export default function DashboardPage() {
   const { company, companyId } = useAuth();
   const { taxObligations, employees, deadlines, isLoading, isConnected } =
     useDZFiscData(companyId);
+  const [chartPeriod, setChartPeriod] = useState<"monthly" | "quarterly">("monthly");
 
   // Computed metrics
   const metrics = useMemo(() => {
@@ -198,7 +290,6 @@ export default function DashboardPage() {
         100
     );
 
-    // TVA status
     const tvaObligations = taxObligations.filter((t) => t.tax_type === "TVA");
     const tvaStatus = tvaObligations.some((t) => t.status === "overdue")
       ? "En retard"
@@ -206,7 +297,6 @@ export default function DashboardPage() {
         ? "En attente"
         : "Conforme";
 
-    // Tax type progress
     const taxTypes = ["TAP", "TVA", "IBS", "IRG"] as const;
     const taxProgress = taxTypes.map((type) => {
       const obligations = taxObligations.filter((t) => t.tax_type === type);
@@ -272,6 +362,13 @@ export default function DashboardPage() {
     });
   }, [taxObligations]);
 
+  // Fiscal year summary pie data
+  const fiscalSummaryData = useMemo(() => [
+    { name: "Payé", value: metrics.totalPaid, color: "#16A34A" },
+    { name: "En attente", value: metrics.totalPending, color: "#D97706" },
+    { name: "En retard", value: metrics.totalOverdue, color: "#E54D4D" },
+  ], [metrics]);
+
   const exportToCSV = () => {
     const headers = ["Statut", "Impôt", "Période", "Échéance", "Montant"];
     const rows = taxObligations.map((t) => [
@@ -300,13 +397,13 @@ export default function DashboardPage() {
       {/* ====== Header ====== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
+          <h1 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2 text-balance">
             <LayoutDashboard className="h-5 w-5 text-[#0C4A2E]" />
             Tableau de Bord / لوحة القيادة
           </h1>
-          <div className="flex items-center gap-3 mt-1 text-xs text-[#666]">
+          <div className="flex items-center gap-3 mt-1 text-xs text-[#6B7280]">
             {company?.nif && (
-              <span className="font-mono bg-emerald-50 px-2 py-0.5 rounded text-emerald-700">
+              <span className="font-mono bg-emerald-50 px-2 py-0.5 rounded text-emerald-700 border border-emerald-100">
                 NIF: {company.nif}
               </span>
             )}
@@ -320,7 +417,7 @@ export default function DashboardPage() {
         <div className="flex gap-2">
           <Button
             asChild
-            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-semibold gap-1 cursor-pointer"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-semibold gap-1 cursor-pointer shadow-soft"
           >
             <Link href="/declarations">
               <FileText className="h-3.5 w-3.5" />
@@ -334,9 +431,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ====== Contextual Tip ====== */}
+      <ContextualTip />
+
       {/* ====== 8 Stat Cards (2 rows of 4) ====== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {/* 1. Impôts Impayés */}
         <StatCard
           accent="gov-card-accent-red"
           iconBg="bg-red-50"
@@ -346,14 +445,15 @@ export default function DashboardPage() {
           value={formatShortDZD(metrics.totalPending + metrics.totalOverdue)}
           subtitle={
             <span className="text-red-500">
-              {taxObligations.filter((t) => t.status !== "paid").length} déclarations en
-              attente
+              {taxObligations.filter((t) => t.status !== "paid").length} déclarations en attente
             </span>
           }
           delay="animate-delay-1"
+          trend={{ value: "12%", up: false }}
+          progress={Math.min(100, Math.round(((metrics.totalPending + metrics.totalOverdue) / Math.max(metrics.totalPaid, 1)) * 100))}
+          progressColor="#E54D4D"
         />
 
-        {/* 2. Échéances Proches */}
         <StatCard
           accent="gov-card-accent-orange"
           iconBg="bg-orange-50"
@@ -373,7 +473,6 @@ export default function DashboardPage() {
           delay="animate-delay-2"
         />
 
-        {/* 3. Paiements Récents */}
         <StatCard
           accent="gov-card-accent-green"
           iconBg="bg-emerald-50"
@@ -387,9 +486,11 @@ export default function DashboardPage() {
             </span>
           }
           delay="animate-delay-3"
+          trend={{ value: "8%", up: true }}
+          progress={metrics.complianceScore}
+          progressColor="#16A34A"
         />
 
-        {/* 4. Statut TVA */}
         <StatCard
           accent="gov-card-accent-gold"
           iconBg="bg-amber-50"
@@ -407,12 +508,10 @@ export default function DashboardPage() {
           delay="animate-delay-4"
         />
 
-        {/* 5. Score Conformité */}
-        <div className="gov-card gov-card-accent animate-fade-in-up animate-delay-5 flex flex-col items-center py-6">
+        <div className="stat-card gov-card-accent animate-fade-in-up animate-delay-5 flex flex-col items-center py-6">
           <ComplianceRing score={metrics.complianceScore} />
         </div>
 
-        {/* 6. Cotisations Sociales */}
         <StatCard
           accent="gov-card-accent-blue"
           iconBg="bg-blue-50"
@@ -428,7 +527,6 @@ export default function DashboardPage() {
           delay="animate-delay-1"
         />
 
-        {/* 7. Documents en Attente */}
         <StatCard
           accent="gov-card-accent-purple"
           iconBg="bg-violet-50"
@@ -440,7 +538,6 @@ export default function DashboardPage() {
           delay="animate-delay-2"
         />
 
-        {/* 8. Audit Status */}
         <StatCard
           accent="gov-card-accent-teal"
           iconBg="bg-teal-50"
@@ -466,27 +563,52 @@ export default function DashboardPage() {
               الإيرادات والضرائب الشهرية — Exercice 2026
             </p>
           </div>
-          <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
-            <Download className="h-3 w-3" />
-            Export
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex bg-gray-100 rounded-lg p-0.5">
+              <button
+                onClick={() => setChartPeriod("monthly")}
+                className={`px-3 py-1 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                  chartPeriod === "monthly" ? "bg-white shadow-soft text-[#0C4A2E]" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Mensuel
+              </button>
+              <button
+                onClick={() => setChartPeriod("quarterly")}
+                className={`px-3 py-1 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
+                  chartPeriod === "quarterly" ? "bg-white shadow-soft text-[#0C4A2E]" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Trimestriel
+              </button>
+            </div>
+            <Button variant="outline" size="sm" className="text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
+              <Download className="h-3 w-3" />
+              Export
+            </Button>
+          </div>
         </div>
         <ResponsiveContainer width="100%" height={280}>
-          <AreaChart data={revenueData}>
+          <AreaChart data={chartPeriod === "monthly" ? revenueData : [
+            { month: "T1", revenu: 37500000, impots: 7125000 },
+            { month: "T2", revenu: 43500000, impots: 8265000 },
+            { month: "T3", revenu: 42600000, impots: 8094000 },
+            { month: "T4", revenu: 48300000, impots: 9177000 },
+          ]}>
             <defs>
               <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0C4A2E" stopOpacity={0.15} />
+                <stop offset="5%" stopColor="#0C4A2E" stopOpacity={0.12} />
                 <stop offset="95%" stopColor="#0C4A2E" stopOpacity={0.01} />
               </linearGradient>
               <linearGradient id="taxGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#B8860B" stopOpacity={0.15} />
+                <stop offset="5%" stopColor="#B8860B" stopOpacity={0.12} />
                 <stop offset="95%" stopColor="#B8860B" stopOpacity={0.01} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#666" }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
+            <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#6B7280" }} />
             <YAxis
-              tick={{ fontSize: 10, fill: "#999" }}
+              tick={{ fontSize: 10, fill: "#9CA3AF" }}
               tickFormatter={(v) => `${v / 1000000}M`}
             />
             <Tooltip
@@ -497,8 +619,9 @@ export default function DashboardPage() {
               labelStyle={{ fontSize: 12, fontWeight: 600 }}
               contentStyle={{
                 fontSize: 12,
-                borderRadius: 8,
-                border: "1px solid #e5e7eb",
+                borderRadius: 10,
+                border: "1px solid rgba(0,0,0,0.06)",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
               }}
             />
             <Legend />
@@ -550,7 +673,7 @@ export default function DashboardPage() {
                 {taxObligations.map((tax) => {
                   const info = TAX_NAMES[tax.tax_type];
                   return (
-                    <tr key={tax.id}>
+                    <tr key={tax.id} className="cursor-pointer">
                       <td>
                         <PaymentBadge
                           status={tax.status as "paid" | "pending" | "overdue"}
@@ -588,6 +711,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ====== Activity Timeline ====== */}
+      <ActivityTimeline />
+
       {/* ====== Tax Breakdown BarChart + Declaration Progress ====== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Tax Breakdown Bar Chart */}
@@ -600,18 +726,19 @@ export default function DashboardPage() {
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={taxBreakdownData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#666" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#6B7280" }} />
               <YAxis
-                tick={{ fontSize: 10, fill: "#999" }}
+                tick={{ fontSize: 10, fill: "#9CA3AF" }}
                 tickFormatter={(v) => `${v / 1000}K`}
               />
               <Tooltip
                 formatter={(value: number) => formatDZD(value)}
                 contentStyle={{
                   fontSize: 12,
-                  borderRadius: 8,
-                  border: "1px solid #e5e7eb",
+                  borderRadius: 10,
+                  border: "1px solid rgba(0,0,0,0.06)",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
                 }}
               />
               <Legend />
@@ -686,7 +813,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={dl.id}
-                  className={`urgency-${dl.urgency} gov-card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2`}
+                  className={`urgency-${dl.urgency} stat-card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2`}
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -696,7 +823,7 @@ export default function DashboardPage() {
                           : dl.deadline_type === "social"
                             ? "bg-gradient-to-br from-blue-500 to-indigo-600"
                             : "bg-gradient-to-br from-violet-500 to-purple-600"
-                      } shadow-md`}
+                      } shadow-soft`}
                     >
                       {dl.deadline_type === "tax" ? (
                         <Receipt className="h-4 w-4 text-white" />
@@ -752,8 +879,8 @@ export default function DashboardPage() {
         <h2 className="gov-section-title mb-3">Actions Rapides / إجراءات سريعة</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Link href="/declarations" className="cursor-pointer group">
-            <div className="gov-card p-4 flex items-center gap-3 card-hover group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-md group-hover:scale-110 transition-transform">
+            <div className="stat-card p-5 flex items-center gap-3 card-hover group">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-soft group-hover:scale-110 transition-transform">
                 <FileText className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -767,8 +894,8 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/documents" className="cursor-pointer group">
-            <div className="gov-card p-4 flex items-center gap-3 card-hover group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md group-hover:scale-110 transition-transform">
+            <div className="stat-card p-5 flex items-center gap-3 card-hover group">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-soft group-hover:scale-110 transition-transform">
                 <FolderOpen className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -782,8 +909,8 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/services" className="cursor-pointer group">
-            <div className="gov-card p-4 flex items-center gap-3 card-hover group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-md group-hover:scale-110 transition-transform">
+            <div className="stat-card p-5 flex items-center gap-3 card-hover group">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-soft group-hover:scale-110 transition-transform">
                 <Calculator className="h-5 w-5 text-white" />
               </div>
               <div>
@@ -799,34 +926,77 @@ export default function DashboardPage() {
       </div>
 
       {/* ====== Fiscal Year Summary ====== */}
-      <div className="gov-card p-6">
-        <h2 className="gov-section-title mb-4">
-          Bilan Exercice 2026 / ميزانية السنة المالية
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div className="text-center">
-            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
-              Payé / مدفوع
-            </p>
-            <p className="text-2xl font-extrabold text-emerald-700 dzd-badge">
-              {formatShortDZD(metrics.totalPaid)}
-            </p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="gov-card p-6">
+          <h2 className="gov-section-title mb-4">
+            Bilan Exercice 2026 / ميزانية السنة المالية
+          </h2>
+          <div className="flex items-center justify-center">
+            <ResponsiveContainer width="100%" height={200}>
+              <PieChart>
+                <Pie
+                  data={fiscalSummaryData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={80}
+                  dataKey="value"
+                  paddingAngle={3}
+                >
+                  {fiscalSummaryData.map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value: number) => formatDZD(value)}
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 10,
+                    border: "1px solid rgba(0,0,0,0.06)",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-          <div className="text-center">
-            <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
-              En attente / قيد الانتظار
-            </p>
-            <p className="text-2xl font-extrabold text-amber-700 dzd-badge">
-              {formatShortDZD(metrics.totalPending)}
-            </p>
+          <div className="flex items-center justify-center gap-6 mt-2">
+            {fiscalSummaryData.map((item) => (
+              <div key={item.name} className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-xs text-gray-600">{item.name}</span>
+              </div>
+            ))}
           </div>
-          <div className="text-center">
-            <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">
-              En retard / متأخر
-            </p>
-            <p className="text-2xl font-extrabold text-red-700 dzd-badge">
-              {formatShortDZD(metrics.totalOverdue)}
-            </p>
+        </div>
+
+        <div className="gov-card p-6">
+          <h2 className="gov-section-title mb-4">
+            Détail Exercice 2026 / تفصيل السنة المالية
+          </h2>
+          <div className="space-y-5">
+            <div className="text-center p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+              <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">
+                Payé / مدفوع
+              </p>
+              <p className="text-2xl font-extrabold text-emerald-700 dzd-badge">
+                {formatShortDZD(metrics.totalPaid)}
+              </p>
+            </div>
+            <div className="text-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">
+                En attente / قيد الانتظار
+              </p>
+              <p className="text-2xl font-extrabold text-amber-700 dzd-badge">
+                {formatShortDZD(metrics.totalPending)}
+              </p>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-xl border border-red-100">
+              <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">
+                En retard / متأخر
+              </p>
+              <p className="text-2xl font-extrabold text-red-600 dzd-badge">
+                {formatShortDZD(metrics.totalOverdue)}
+              </p>
+            </div>
           </div>
         </div>
       </div>

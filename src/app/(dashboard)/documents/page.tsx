@@ -14,6 +14,9 @@ import {
   Clock,
   AlertTriangle,
   File,
+  Image,
+  Table2,
+  FileType,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,86 +41,14 @@ import { DocumentBadge } from "@/components/gov/status-badge";
 /* ------------------------------------------------------------------ */
 
 const MOCK_DOCUMENTS = [
-  {
-    id: "DOC-001",
-    title: "Déclaration TAP — Avril 2026",
-    titleAr: "تصريح ض.م.م — أفريل 2026",
-    type: "declaration",
-    category: "Déclarations",
-    status: "valid" as const,
-    date: "2026-04-19",
-    size: "245 KB",
-  },
-  {
-    id: "DOC-002",
-    title: "Attestation de Conformité Fiscale",
-    titleAr: "شهادة الامتثال الجبائي",
-    type: "attestation",
-    category: "Attestations",
-    status: "valid" as const,
-    date: "2026-03-15",
-    size: "180 KB",
-  },
-  {
-    id: "DOC-003",
-    title: "Reçu Paiement TVA — Mars 2026",
-    titleAr: "إيصال دفع ر.ق — مارس 2026",
-    type: "receipt",
-    category: "Reçus",
-    status: "valid" as const,
-    date: "2026-03-20",
-    size: "120 KB",
-  },
-  {
-    id: "DOC-004",
-    title: "Bordereau CNAS — Avril 2026",
-    titleAr: "قسيم ص.و.ت.ش — أفريل 2026",
-    type: "social",
-    category: "Cotisations",
-    status: "pending" as const,
-    date: "2026-04-30",
-    size: "310 KB",
-  },
-  {
-    id: "DOC-005",
-    title: "Liasse Fiscale 2025",
-    titleAr: "الملف الجبائي 2025",
-    type: "declaration",
-    category: "Déclarations",
-    status: "expired" as const,
-    date: "2025-12-31",
-    size: "1.2 MB",
-  },
-  {
-    id: "DOC-006",
-    title: "Certificat de Situation Fiscale",
-    titleAr: "شهادة الحالة الجبائية",
-    type: "attestation",
-    category: "Attestations",
-    status: "valid" as const,
-    date: "2026-05-01",
-    size: "95 KB",
-  },
-  {
-    id: "DOC-007",
-    title: "Reçu Paiement IBS — T1 2026",
-    titleAr: "إيصال دفع ض.أ.ش — ت1 2026",
-    type: "receipt",
-    category: "Reçus",
-    status: "valid" as const,
-    date: "2026-04-28",
-    size: "135 KB",
-  },
-  {
-    id: "DOC-008",
-    title: "Avis d'Imposition — Taxe Foncière",
-    titleAr: "إشعار فرض الضريبة — الضريبة العقارية",
-    type: "administrative",
-    category: "Administratifs",
-    status: "pending" as const,
-    date: "2026-06-01",
-    size: "210 KB",
-  },
+  { id: "DOC-001", title: "Déclaration TAP — Avril 2026", titleAr: "تصريح ض.م.م — أفريل 2026", type: "declaration", category: "Déclarations", status: "valid" as const, date: "2026-04-19", size: "245 KB" },
+  { id: "DOC-002", title: "Attestation de Conformité Fiscale", titleAr: "شهادة الامتثال الجبائي", type: "attestation", category: "Attestations", status: "valid" as const, date: "2026-03-15", size: "180 KB" },
+  { id: "DOC-003", title: "Reçu Paiement TVA — Mars 2026", titleAr: "إيصال دفع ر.ق — مارس 2026", type: "receipt", category: "Reçus", status: "valid" as const, date: "2026-03-20", size: "120 KB" },
+  { id: "DOC-004", title: "Bordereau CNAS — Avril 2026", titleAr: "قسيم ص.و.ت.ش — أفريل 2026", type: "social", category: "Cotisations", status: "pending" as const, date: "2026-04-30", size: "310 KB" },
+  { id: "DOC-005", title: "Liasse Fiscale 2025", titleAr: "الملف الجبائي 2025", type: "declaration", category: "Déclarations", status: "expired" as const, date: "2025-12-31", size: "1.2 MB" },
+  { id: "DOC-006", title: "Certificat de Situation Fiscale", titleAr: "شهادة الحالة الجبائية", type: "attestation", category: "Attestations", status: "valid" as const, date: "2026-05-01", size: "95 KB" },
+  { id: "DOC-007", title: "Reçu Paiement IBS — T1 2026", titleAr: "إيصال دفع ض.أ.ش — ت1 2026", type: "receipt", category: "Reçus", status: "valid" as const, date: "2026-04-28", size: "135 KB" },
+  { id: "DOC-008", title: "Avis d'Imposition — Taxe Foncière", titleAr: "إشعار فرض الضريبة — الضريبة العقارية", type: "administrative", category: "Administratifs", status: "pending" as const, date: "2026-06-01", size: "210 KB" },
 ];
 
 const CATEGORIES = [
@@ -175,7 +106,7 @@ function DocumentDetailDialog({ doc }: { doc: typeof MOCK_DOCUMENTS[0] }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 cursor-pointer">
+        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 cursor-pointer" aria-label={`Voir ${doc.title}`}>
           <Eye className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
@@ -184,7 +115,7 @@ function DocumentDetailDialog({ doc }: { doc: typeof MOCK_DOCUMENTS[0] }) {
           <DialogTitle className="text-sm">{doc.title}</DialogTitle>
         </DialogHeader>
         <div className="doc-frame min-h-[200px] flex flex-col items-center justify-center gap-4">
-          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-lg`}>
+          <div className={`flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-card`}>
             <Icon className="h-7 w-7 text-white" />
           </div>
           <p className="text-base font-bold text-gray-800">{doc.title}</p>
@@ -194,10 +125,9 @@ function DocumentDetailDialog({ doc }: { doc: typeof MOCK_DOCUMENTS[0] }) {
             <span>{doc.size}</span>
           </div>
           <DocumentBadge status={doc.status} />
-          <div className="w-16 h-16 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center mx-auto mt-4"><span className="text-[8px] font-bold text-gray-400 text-center">DZ-Fisc<br/>Vérifié</span></div>
         </div>
         <div className="flex gap-2 mt-4">
-          <Button className="flex-1 bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
+          <Button className="flex-1 bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
             <Download className="h-3.5 w-3.5" />
             Télécharger / تحميل
           </Button>
@@ -220,6 +150,7 @@ export default function DocumentsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [uploadedFiles, setUploadedFiles] = useState<{name: string; size: string; date: string}[]>([]);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownload = (doc: typeof MOCK_DOCUMENTS[0]) => {
@@ -233,15 +164,6 @@ export default function DocumentsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handlePrint = (doc: typeof MOCK_DOCUMENTS[0]) => {
-    const printWindow = window.open("", "_blank");
-    if (printWindow) {
-      printWindow.document.write(`<html><head><title>${doc.title}</title></head><body style="font-family:sans-serif;padding:40px"><h1>${doc.title}</h1><p>${doc.titleAr}</p><p>Date: ${doc.date}</p><p>Taille: ${doc.size}</p><p>Statut: ${doc.status}</p><hr><p>Document généré par DZ-Fisc — Direction Générale des Impôts</p></body></html>`);
-      printWindow.document.close();
-      printWindow.print();
-    }
-  };
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -253,6 +175,7 @@ export default function DocumentsPage() {
       setUploadedFiles((prev) => [...prev, ...newFiles]);
     }
   };
+
   const filteredDocs = MOCK_DOCUMENTS.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "all" || doc.type === categoryFilter;
@@ -301,6 +224,7 @@ export default function DocumentsPage() {
             size="sm"
             onClick={() => setViewMode("grid")}
             className={`h-8 w-8 p-0 cursor-pointer ${viewMode === "grid" ? "bg-[#0C4A2E] text-white" : ""}`}
+            aria-label="Vue grille"
           >
             <Grid3X3 className="h-3.5 w-3.5" />
           </Button>
@@ -309,6 +233,7 @@ export default function DocumentsPage() {
             size="sm"
             onClick={() => setViewMode("list")}
             className={`h-8 w-8 p-0 cursor-pointer ${viewMode === "list" ? "bg-[#0C4A2E] text-white" : ""}`}
+            aria-label="Vue liste"
           >
             <List className="h-3.5 w-3.5" />
           </Button>
@@ -317,7 +242,14 @@ export default function DocumentsPage() {
 
       {/* Upload Drop Zone */}
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={handleFileUpload} />
-      <div className="drop-zone cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+      <div
+        className={`drop-zone cursor-pointer ${dragActive ? "drop-zone-active" : ""}`}
+        onClick={() => fileInputRef.current?.click()}
+        onDragEnter={() => setDragActive(true)}
+        onDragLeave={() => setDragActive(false)}
+        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDrop={(e) => { e.preventDefault(); setDragActive(false); }}
+      >
         <Upload className="h-10 w-10 text-gray-300 mx-auto mb-3" />
         <p className="text-sm font-semibold text-gray-500">Glisser-déposer vos documents ici</p>
         <p className="text-[10px] text-gray-400 mt-1">PDF, JPEG, PNG — Max 10 MB par fichier / إسقاط الوثائق هنا</p>
@@ -345,15 +277,12 @@ export default function DocumentsPage() {
           {filteredDocs.map((doc) => {
             const Icon = TYPE_ICONS[doc.type] || File;
             return (
-              <div key={doc.id} className="doc-frame pt-6 space-y-3">
+              <div key={doc.id} className="stat-card p-5 space-y-3 card-hover">
                 <div className="flex items-start justify-between">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-md`}>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-soft`}>
                     <Icon className="h-5 w-5 text-white" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <DocumentBadge status={doc.status} />
-                    <div className="w-10 h-10 bg-white border-2 border-gray-300 rounded-lg flex items-center justify-center"><span className="text-[6px] font-bold text-gray-400 text-center">DZ-Fisc<br/>Vérifié</span></div>
-                  </div>
+                  <DocumentBadge status={doc.status} />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800 leading-tight">{doc.title}</p>
@@ -361,10 +290,11 @@ export default function DocumentsPage() {
                 </div>
                 <div className="flex items-center gap-3 text-[10px] text-gray-400">
                   <span>{doc.date}</span>
+                  <span>·</span>
                   <span>{doc.size}</span>
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <Button variant="outline" size="sm" className="flex-1 h-7 text-[10px] gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
+                  <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] gap-1 cursor-pointer" onClick={() => handleDownload(doc)}>
                     <Download className="h-3 w-3" />
                     Télécharger
                   </Button>
@@ -382,9 +312,9 @@ export default function DocumentsPage() {
             return (
               <div
                 key={doc.id}
-                className="gov-card p-4 flex items-center gap-4"
+                className="stat-card p-4 flex items-center gap-4 card-hover"
               >
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-md`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${TYPE_COLORS[doc.type]} shadow-soft`}>
                   <Icon className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -405,9 +335,15 @@ export default function DocumentsPage() {
       )}
 
       {filteredDocs.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <FolderOpen className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Aucun document trouvé / لا توجد وثائق</p>
+        <div className="empty-state py-12">
+          <div className="empty-state-icon bg-gray-50">
+            <FolderOpen className="h-6 w-6 text-gray-300" />
+          </div>
+          <p className="text-sm text-gray-400">Aucun document trouvé / لا توجد وثائق</p>
+          <Button variant="outline" size="sm" className="mt-3 text-xs cursor-pointer">
+            <Upload className="h-3 w-3 mr-1" />
+            Importer un document
+          </Button>
         </div>
       )}
     </div>

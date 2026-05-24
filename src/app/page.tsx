@@ -18,6 +18,9 @@ import {
   Users,
   Clock,
   BadgeCheck,
+  Quote,
+  TrendingUp,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
@@ -34,8 +37,6 @@ const features = [
     description:
       "TAP, TVA, IBS, IRG — formulaires pré-remplis et soumission électronique à la DGI",
     gradient: "from-emerald-600 to-teal-600",
-    iconBg: "bg-emerald-50",
-    iconColor: "text-emerald-600",
   },
   {
     icon: Calculator,
@@ -44,8 +45,6 @@ const features = [
     description:
       "Barème IRG progressif, TAP 1%, TVA 19%, IBS 19% — calculs instantanés et conformes",
     gradient: "from-amber-600 to-yellow-600",
-    iconBg: "bg-amber-50",
-    iconColor: "text-amber-600",
   },
   {
     icon: CalendarDays,
@@ -54,8 +53,6 @@ const features = [
     description:
       "Suivi des dates limites, alertes SMS/email, pénalités évitées automatiquement",
     gradient: "from-orange-600 to-red-500",
-    iconBg: "bg-orange-50",
-    iconColor: "text-orange-600",
   },
   {
     icon: CheckCircle2,
@@ -64,8 +61,6 @@ const features = [
     description:
       "Score de conformité en temps réel, audit trail complet, conforme DGI — législation algérienne",
     gradient: "from-teal-600 to-cyan-600",
-    iconBg: "bg-teal-50",
-    iconColor: "text-teal-600",
   },
 ];
 
@@ -82,11 +77,28 @@ const stats = [
   { value: "100%", label: "Conforme DGI", labelAr: "متوافق مع م.ع.ض", icon: BadgeCheck },
 ];
 
+const testimonials = [
+  {
+    quote: "DZ-Fisc a transformé notre gestion fiscale. Nous n'avons plus jamais de retard de déclaration.",
+    author: "Karim B.",
+    role: "Directeur Financier, SARL TechAlger",
+  },
+  {
+    quote: "La calculatrice fiscale nous fait gagner des heures chaque mois. Un outil indispensable.",
+    author: "Amina M.",
+    role: "Comptable, EURL BatiPlus",
+  },
+  {
+    quote: "Enfin une plateforme officielle qui simplifie les démarches. Merci DGI !",
+    author: "Youssef K.",
+    role: "Gérant, SPA HydroDZ",
+  },
+];
+
 export default function LandingPage() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
 
-  // Redirect authenticated users to dashboard
   React.useEffect(() => {
     if (!loading && isAuthenticated) {
       router.replace("/dashboard");
@@ -106,7 +118,7 @@ export default function LandingPage() {
   }
 
   if (isAuthenticated) {
-    return null; // Will redirect via effect
+    return null;
   }
 
   return (
@@ -144,16 +156,16 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* ====== Hero Section ====== */}
         <section className="relative overflow-hidden">
-          {/* Decorative background elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-100/30 blur-3xl" />
             <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-amber-100/20 blur-3xl" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-50/20 blur-3xl" />
           </div>
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-16 md:py-24">
             <div className="text-center space-y-6">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-1.5 animate-fade-in-up">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -164,23 +176,23 @@ export default function LandingPage() {
               </div>
 
               {/* Heading */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#1A1A1A] leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-[#1A1A1A] leading-tight text-balance animate-fade-in-up animate-delay-1">
                 Conformité Fiscale
                 <br />
                 <span className="gradient-text">Automatisée</span>
               </h1>
 
-              <p className="text-lg text-[#666666] max-w-2xl mx-auto leading-relaxed">
+              <p className="text-lg text-[#6B7280] max-w-2xl mx-auto leading-relaxed animate-fade-in-up animate-delay-2">
                 Gérez vos obligations fiscales et sociales algériennes en toute conformité.
                 TAP, TVA, IBS, IRG, CNAS, CASNOS — tout en une seule plateforme.
               </p>
 
-              <p className="text-sm text-[#999]">
+              <p className="text-sm text-[#9CA3AF] animate-fade-in-up animate-delay-3">
                 الامتثال الضريبي الآلي — إدارة التزاماتك الجبائية والاجتماعية
               </p>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4 animate-fade-in-up animate-delay-4">
                 <Button
                   onClick={() => router.push("/signup")}
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold px-8 h-12 rounded-xl gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition-all hover:shadow-xl text-sm"
@@ -196,10 +208,9 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              {/* Demo mode link */}
               <a
                 href="/dashboard"
-                className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 underline underline-offset-2 transition-colors mt-2"
+                className="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-700 underline underline-offset-2 transition-colors mt-2 animate-fade-in-up animate-delay-5"
               >
                 <Star className="h-3 w-3" />
                 Essayer en mode démonstration / تجربة الوضع التجريبي
@@ -214,7 +225,7 @@ export default function LandingPage() {
             <h2 className="text-2xl font-bold text-[#1A1A1A]">
               Fonctionnalités / الميزات
             </h2>
-            <p className="text-sm text-[#666] mt-1">
+            <p className="text-sm text-[#6B7280] mt-1">
               Une plateforme complète pour la gestion fiscale algérienne
             </p>
           </div>
@@ -231,7 +242,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-base font-bold text-[#1A1A1A] mb-1">{feature.title}</h3>
                 <p className="text-[11px] text-emerald-700 mb-2 font-medium">{feature.titleAr}</p>
-                <p className="text-sm text-[#666666] leading-relaxed">{feature.description}</p>
+                <p className="text-sm text-[#6B7280] leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -241,19 +252,19 @@ export default function LandingPage() {
         <section className="bg-white border-y border-gray-200 py-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
             <div className="text-center mb-6">
-              <h2 className="text-sm font-bold text-[#999] uppercase tracking-wider">
+              <h2 className="text-sm font-bold text-[#6B7280] uppercase tracking-wider">
                 Certifié & Sécurisé / معتمد وآمن
               </h2>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-12">
               {trustBadges.map((badge) => (
                 <div key={badge.label} className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FAFAF8]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F8FAF9]">
                     <badge.icon className={`h-5 w-5 ${badge.color}`} />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-[#1A1A1A]">{badge.label}</p>
-                    <p className="text-[10px] text-[#999]">{badge.labelAr}</p>
+                    <p className="text-[10px] text-[#9CA3AF]">{badge.labelAr}</p>
                   </div>
                 </div>
               ))}
@@ -270,16 +281,51 @@ export default function LandingPage() {
                   <stat.icon className="h-4 w-4 text-[#0C4A2E]" />
                 </div>
                 <p className="text-3xl font-extrabold text-[#0C4A2E]">{stat.value}</p>
-                <p className="text-sm font-medium text-[#333] mt-1">{stat.label}</p>
-                <p className="text-[10px] text-[#999]">{stat.labelAr}</p>
+                <p className="text-sm font-medium text-[#1A1A1A] mt-1">{stat.label}</p>
+                <p className="text-[10px] text-[#9CA3AF]">{stat.labelAr}</p>
               </div>
             ))}
           </div>
         </section>
 
+        {/* ====== Testimonials ====== */}
+        <section className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-bold text-[#1A1A1A]">
+                Témoignages / شهادات
+              </h2>
+              <p className="text-sm text-[#6B7280] mt-1">
+                Ce que disent nos utilisateurs
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t, i) => (
+                <div key={i} className="gov-card p-6 relative">
+                  <Quote className="h-8 w-8 text-emerald-100 mb-3" />
+                  <p className="text-sm text-gray-700 leading-relaxed mb-4">{t.quote}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+                      {t.author.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-800">{t.author}</p>
+                      <p className="text-[10px] text-gray-400">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ====== CTA Section ====== */}
-        <section className="bg-[#0C4A2E] py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+        <section className="bg-[#0C4A2E] py-12 relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-emerald-800/30 blur-3xl" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-teal-800/30 blur-3xl" />
+          </div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 text-center">
             <h2 className="text-2xl font-bold text-white mb-2">
               Prêt à simplifier votre gestion fiscale ?
             </h2>
@@ -326,6 +372,8 @@ export default function LandingPage() {
             <a href="#" className="hover:text-emerald-300/50 transition-colors">Mentions légales / الإشعارات القانونية</a>
             <span>|</span>
             <a href="#" className="hover:text-emerald-300/50 transition-colors">Confidentialité / الخصوصية</a>
+            <span>|</span>
+            <a href="#" className="hover:text-emerald-300/50 transition-colors">Accessibilité / إمكانية الوصول</a>
           </div>
         </div>
       </footer>

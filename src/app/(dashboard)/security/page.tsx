@@ -18,6 +18,7 @@ import {
   MessageSquare,
   AlertTriangle,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Data                                                          */
@@ -84,6 +92,7 @@ export default function SecurityPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [sessions, setSessions] = useState(MOCK_ACTIVE_SESSIONS);
   const [notifMessage, setNotifMessage] = useState<string | null>(null);
+  const [auditFilter, setAuditFilter] = useState("all");
   const securityScore = twoFAEnabled ? 85 : 65;
 
   const handlePasswordChange = async () => {
@@ -123,6 +132,11 @@ export default function SecurityPage() {
     setSessions((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const filteredAuditLog = MOCK_AUDIT_LOG.filter((log) => {
+    if (auditFilter === "all") return true;
+    return log.action.toLowerCase().includes(auditFilter.toLowerCase());
+  });
+
   return (
     <div className="space-y-6 view-enter">
       {/* Header */}
@@ -134,36 +148,37 @@ export default function SecurityPage() {
         <p className="text-xs text-gray-500 mt-1">Gérez la sécurité de votre compte et vos paramètres de confiance</p>
       </div>
 
-      {/* Security Score */}
+      {/* Security Score — Enhanced */}
       <div className="gov-card p-6">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="relative">
-            <svg width="100" height="100" className="compliance-ring">
-              <circle cx="50" cy="50" r="40" className="compliance-ring-track" />
+            <svg width="120" height="120" className="compliance-ring">
+              <circle cx="60" cy="60" r="50" className="compliance-ring-track" stroke-width="10" />
               <circle
-                cx="50"
-                cy="50"
-                r="40"
+                cx="60"
+                cy="60"
+                r="50"
                 className="compliance-ring-fill"
-                stroke={securityScore >= 80 ? "#16A34A" : securityScore >= 60 ? "#D97706" : "#DC2626"}
-                strokeDasharray={2 * Math.PI * 40}
-                strokeDashoffset={2 * Math.PI * 40 - (securityScore / 100) * 2 * Math.PI * 40}
+                stroke={securityScore >= 80 ? "#16A34A" : "#D97706"}
+                strokeDasharray={2 * Math.PI * 50}
+                strokeDashoffset={2 * Math.PI * 50 - (securityScore / 100) * 2 * Math.PI * 50}
+                stroke-width="10"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xl font-extrabold" style={{ color: securityScore >= 80 ? "#16A34A" : "#D97706" }}>
+              <span className="text-2xl font-extrabold" style={{ color: securityScore >= 80 ? "#16A34A" : "#D97706" }}>
                 {securityScore}
               </span>
-              <span className="text-[8px] text-gray-400">/ 100</span>
+              <span className="text-[9px] text-gray-400">/ 100</span>
             </div>
           </div>
-          <div className="flex-1 space-y-2 text-center sm:text-left">
+          <div className="flex-1 space-y-3 text-center sm:text-left">
             <h3 className="text-sm font-bold text-[#1A1A1A]">Score de Sécurité / نقاط الأمان</h3>
-            <Progress value={securityScore} className="h-2" />
+            <Progress value={securityScore} className="h-2.5" />
             <p className="text-xs text-gray-500">
               {securityScore >= 80
-                ? "Votre compte est bien protégé / حسابك محمي جيداً"
-                : "Activez la 2FA pour améliorer votre sécurité / فعّل المصادقة الثنائية"}
+                ? "✅ Votre compte est bien protégé / حسابك محمي جيداً"
+                : "⚠️ Activez la 2FA pour améliorer votre sécurité / فعّل المصادقة الثنائية"}
             </p>
           </div>
         </div>
@@ -191,7 +206,7 @@ export default function SecurityPage() {
         </div>
       </div>
 
-      {/* 2FA Section */}
+      {/* 2FA + Password */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="gov-card p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -244,7 +259,7 @@ export default function SecurityPage() {
                   </div>
                 </div>
               </div>
-              <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={() => setTwoFAEnabled(true)}>
+              <Button className="w-full bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer" onClick={() => setTwoFAEnabled(true)}>
                 <Key className="h-3.5 w-3.5" />
                 Activer la 2FA / تفعيل المصادقة الثنائية
               </Button>
@@ -252,7 +267,6 @@ export default function SecurityPage() {
           )}
         </div>
 
-        {/* Password Change */}
         <div className="gov-card p-6 space-y-4">
           <div className="flex items-center gap-2">
             <Lock className="h-4 w-4 text-[#0C4A2E]" />
@@ -262,10 +276,11 @@ export default function SecurityPage() {
             <div>
               <Label className="text-xs text-gray-500">Mot de passe actuel</Label>
               <div className="relative mt-1">
-                <Input type={showPassword ? "text" : "password"} className="h-9 rounded-xl pr-10" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                <Input type={showPassword ? "text" : "password"} className="h-11 rounded-xl pr-10" placeholder="••••••••" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                 <button
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
                   {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
@@ -273,11 +288,11 @@ export default function SecurityPage() {
             </div>
             <div>
               <Label className="text-xs text-gray-500">Nouveau mot de passe</Label>
-              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+              <Input type="password" className="h-11 rounded-xl mt-1" placeholder="••••••••" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             </div>
             <div>
               <Label className="text-xs text-gray-500">Confirmer le mot de passe</Label>
-              <Input type="password" className="h-9 rounded-xl mt-1" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              <Input type="password" className="h-11 rounded-xl mt-1" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
             </div>
             {passwordError && (
               <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-700">{passwordError}</div>
@@ -285,7 +300,7 @@ export default function SecurityPage() {
             {passwordSuccess && (
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Mot de passe mis à jour / تم تحديث كلمة المرور</div>
             )}
-            <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={handlePasswordChange}>
+            <Button className="w-full bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer" onClick={handlePasswordChange}>
               <Lock className="h-3.5 w-3.5" />
               Mettre à jour / تحديث
             </Button>
@@ -314,7 +329,7 @@ export default function SecurityPage() {
                     <td className="text-xs font-mono text-gray-600">{log.date}</td>
                     <td className="text-xs font-mono">{log.ip}</td>
                     <td className="text-xs">{log.device}</td>
-                    <td className="text-xs">{log.location}</td>
+                    <td className="text-xs flex items-center gap-1"><MapPin className="h-3 w-3 text-gray-400" />{log.location}</td>
                     <td>
                       {log.status === "success" ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
@@ -339,8 +354,8 @@ export default function SecurityPage() {
         <h2 className="gov-section-title mb-3">Appareils Actifs / الأجهزة النشطة</h2>
         <div className="space-y-2">
           {sessions.map((session) => (
-            <div key={session.id} className="gov-card p-4 flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
+            <div key={session.id} className="stat-card p-4 flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50">
                 {session.device.includes("iOS") || session.device.includes("Android") ? (
                   <Smartphone className="h-4 w-4 text-gray-600" />
                 ) : (
@@ -365,28 +380,6 @@ export default function SecurityPage() {
                   Révoquer / إلغاء
                 </Button>
               )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Security Notifications */}
-      <div>
-        <h2 className="gov-section-title mb-3">Événements de Sécurité / أحداث أمنية</h2>
-        <div className="space-y-2">
-          {MOCK_SECURITY_EVENTS.map((event) => (
-            <div key={event.id} className="gov-card p-3 flex items-center gap-3">
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                event.type === "alert" ? "bg-red-50" : event.type === "2fa" ? "bg-emerald-50" : "bg-blue-50"
-              }`}>
-                {event.type === "alert" ? <AlertTriangle className="h-3.5 w-3.5 text-red-500" /> :
-                 event.type === "2fa" ? <Shield className="h-3.5 w-3.5 text-emerald-500" /> :
-                 <Globe className="h-3.5 w-3.5 text-blue-500" />}
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-medium text-gray-700">{event.message}</p>
-                <p className="text-[9px] text-gray-400">{event.date}</p>
-              </div>
             </div>
           ))}
         </div>
@@ -425,7 +418,20 @@ export default function SecurityPage() {
 
       {/* Audit Log */}
       <div>
-        <h2 className="gov-section-title mb-3">Journal d&apos;Audit / سجل التدقيق</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="gov-section-title">Journal d&apos;Audit / سجل التدقيق</h2>
+          <Select value={auditFilter} onValueChange={setAuditFilter}>
+            <SelectTrigger className="w-36 h-8 rounded-xl text-xs cursor-pointer">
+              <SelectValue placeholder="Filtrer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">Tous</SelectItem>
+              <SelectItem value="connexion" className="cursor-pointer">Connexions</SelectItem>
+              <SelectItem value="soumission" className="cursor-pointer">Soumissions</SelectItem>
+              <SelectItem value="export" className="cursor-pointer">Exports</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="overflow-hidden rounded-xl border border-gray-200">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="gov-table">
@@ -438,7 +444,7 @@ export default function SecurityPage() {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_AUDIT_LOG.map((log) => (
+                {filteredAuditLog.map((log) => (
                   <tr key={log.id}>
                     <td className="text-xs font-mono text-gray-600">{log.timestamp}</td>
                     <td className="text-xs font-medium">{log.user}</td>

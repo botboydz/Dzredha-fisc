@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Clock,
   CheckCircle2,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,13 +112,13 @@ function TaxCalculator() {
           <button
             key={t.key}
             onClick={() => setSelectedTax(t.key)}
-            className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition-all cursor-pointer card-hover ${
               selectedTax === t.key
-                ? "bg-white border-emerald-200 shadow-md scale-[1.02]"
+                ? "bg-white border-emerald-200 shadow-card scale-[1.02]"
                 : "bg-white/60 border-gray-200/60 hover:bg-white hover:border-gray-300"
             }`}
           >
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-md`}>
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-soft`}>
               <t.icon className="h-5 w-5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-800">{t.key}</span>
@@ -137,7 +138,7 @@ function TaxCalculator() {
                 type="number"
                 value={revenue}
                 onChange={(e) => setRevenue(Number(e.target.value))}
-                className="h-10 rounded-xl pr-12 dzd-badge"
+                className="h-11 rounded-xl pr-12 dzd-badge"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
             </div>
@@ -149,7 +150,7 @@ function TaxCalculator() {
                 type="number"
                 value={expenses}
                 onChange={(e) => setExpenses(Number(e.target.value))}
-                className="h-10 rounded-xl pr-12 dzd-badge"
+                className="h-11 rounded-xl pr-12 dzd-badge"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
             </div>
@@ -161,7 +162,7 @@ function TaxCalculator() {
                 type="number"
                 value={salaryMass}
                 onChange={(e) => setSalaryMass(Number(e.target.value))}
-                className="h-10 rounded-xl pr-12 dzd-badge"
+                className="h-11 rounded-xl pr-12 dzd-badge"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
             </div>
@@ -170,7 +171,7 @@ function TaxCalculator() {
 
         {/* Results */}
         <div className="space-y-4">
-          <div className="bg-gradient-to-br from-emerald-700 to-teal-800 rounded-xl p-6 text-white shadow-xl">
+          <div className="bg-gradient-to-br from-emerald-700 to-teal-800 rounded-xl p-6 text-white shadow-card">
             <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">{current.label}</p>
             <p className="text-emerald-200/60 text-[10px] mb-4">{current.labelAr}</p>
             <p className="text-4xl font-extrabold dzd-badge animate-count">{formatDZD(current.amount)}</p>
@@ -236,7 +237,7 @@ function AppointmentBooking() {
           <div>
             <Label className="text-xs font-semibold text-gray-500">Wilaya / الولاية</Label>
             <Select value={selectedWilaya} onValueChange={setSelectedWilaya}>
-              <SelectTrigger className="mt-1 h-10 rounded-xl cursor-pointer">
+              <SelectTrigger className="mt-1 h-11 rounded-xl cursor-pointer">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -249,13 +250,13 @@ function AppointmentBooking() {
 
           <div>
             <Label className="text-xs font-semibold text-gray-500">Date souhaitée / التاريخ المطلوب</Label>
-            <Input type="date" className="mt-1 h-10 rounded-xl" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+            <Input type="date" className="mt-1 h-11 rounded-xl" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
           </div>
 
           <div>
             <Label className="text-xs font-semibold text-gray-500">Motif / السبب</Label>
             <Select value={selectedMotif} onValueChange={setSelectedMotif}>
-              <SelectTrigger className="mt-1 h-10 rounded-xl cursor-pointer">
+              <SelectTrigger className="mt-1 h-11 rounded-xl cursor-pointer">
                 <SelectValue placeholder="Sélectionner..." />
               </SelectTrigger>
               <SelectContent>
@@ -275,9 +276,9 @@ function AppointmentBooking() {
               <button
                 key={slot}
                 onClick={() => setSelectedSlot(slot)}
-                className={`py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`py-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   selectedSlot === slot
-                    ? "bg-[#0C4A2E] text-white shadow-md"
+                    ? "bg-[#0C4A2E] text-white shadow-soft"
                     : "bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700"
                 }`}
               >
@@ -285,7 +286,7 @@ function AppointmentBooking() {
               </button>
             ))}
           </div>
-          <Button className="w-full bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" disabled={!selectedSlot || !selectedDate || bookingStatus === "booking"} onClick={async () => {
+          <Button className="w-full bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer" disabled={!selectedSlot || !selectedDate || bookingStatus === "booking"} onClick={async () => {
             if (!selectedSlot || !selectedDate) return;
             setBookingStatus("booking");
             await new Promise((r) => setTimeout(r, 1500));
@@ -316,33 +317,21 @@ function AppointmentBooking() {
 /* ------------------------------------------------------------------ */
 
 const FAQ_ITEMS = [
-  {
-    question: "Quelle est la date limite pour la déclaration TAP ?",
-    answer: "La déclaration TAP doit être soumise au plus tard le 20 du mois suivant la période concernée. En cas de retard, une pénalité de 10% à 25% est appliquée sur le montant dû.",
-  },
-  {
-    question: "Comment calculer l'IRG sur les salaires ?",
-    answer: "L'IRG est calculé selon un barème progressif : 0% jusqu'à 20 000 DZD/mois, 20% de 20 001 à 30 000 DZD/mois, 30% de 30 001 à 40 000 DZD/mois, et 35% au-delà de 40 000 DZD/mois.",
-  },
-  {
-    question: "Quel est le taux de TVA en Algérie ?",
-    answer: "Le taux normal de TVA en Algérie est de 19%. Il existe un taux réduit de 9% applicable à certains biens et services de première nécessité.",
-  },
-  {
-    question: "Quelles sont les cotisations CNAS pour l'employeur ?",
-    answer: "La part patronale CNAS est de 26% de la masse salariale brute. La part salariale est de 9%. Le CASNOS pour les travailleurs indépendants est de 15%.",
-  },
-  {
-    question: "Comment obtenir une attestation de conformité fiscale ?",
-    answer: "L'attestation de conformité fiscale peut être demandée via la plateforme DZ-Fisc ou directement au bureau des impôts de votre wilaya. Le délai de traitement est de 5 à 10 jours ouvrables.",
-  },
-  {
-    question: "Quelles sont les sanctions en cas de fausse déclaration ?",
-    answer: "Conformément à l'article 115 du CIDTA, une amende fiscale de 10% à 25% du montant éludé est appliquée, sans préjudice des poursuites pénales prévues par la législation en vigueur.",
-  },
+  { question: "Quelle est la date limite pour la déclaration TAP ?", answer: "La déclaration TAP doit être soumise au plus tard le 20 du mois suivant la période concernée. En cas de retard, une pénalité de 10% à 25% est appliquée sur le montant dû." },
+  { question: "Comment calculer l'IRG sur les salaires ?", answer: "L'IRG est calculé selon un barème progressif : 0% jusqu'à 20 000 DZD/mois, 20% de 20 001 à 30 000 DZD/mois, 30% de 30 001 à 40 000 DZD/mois, et 35% au-delà de 40 000 DZD/mois." },
+  { question: "Quel est le taux de TVA en Algérie ?", answer: "Le taux normal de TVA en Algérie est de 19%. Il existe un taux réduit de 9% applicable à certains biens et services de première nécessité." },
+  { question: "Quelles sont les cotisations CNAS pour l'employeur ?", answer: "La part patronale CNAS est de 26% de la masse salariale brute. La part salariale est de 9%. Le CASNOS pour les travailleurs indépendants est de 15%." },
+  { question: "Comment obtenir une attestation de conformité fiscale ?", answer: "L'attestation de conformité fiscale peut être demandée via la plateforme DZ-Fisc ou directement au bureau des impôts de votre wilaya. Le délai de traitement est de 5 à 10 jours ouvrables." },
+  { question: "Quelles sont les sanctions en cas de fausse déclaration ?", answer: "Conformément à l'article 115 du CIDTA, une amende fiscale de 10% à 25% du montant éludé est appliquée, sans préjudice des poursuites pénales prévues par la législation en vigueur." },
 ];
 
 function HelpCenter() {
+  const [faqSearch, setFaqSearch] = useState("");
+  const filteredFAQ = FAQ_ITEMS.filter((item) =>
+    item.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
+    item.answer.toLowerCase().includes(faqSearch.toLowerCase())
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -353,8 +342,19 @@ function HelpCenter() {
         </div>
       </div>
 
+      {/* Search FAQ */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+        <Input
+          placeholder="Rechercher dans la FAQ..."
+          value={faqSearch}
+          onChange={(e) => setFaqSearch(e.target.value)}
+          className="pl-9 h-9 rounded-xl text-xs"
+        />
+      </div>
+
       <Accordion type="single" collapsible className="space-y-2">
-        {FAQ_ITEMS.map((item, i) => (
+        {filteredFAQ.map((item, i) => (
           <AccordionItem key={i} value={`faq-${i}`} className="gov-card px-4 border-0">
             <AccordionTrigger className="text-sm font-semibold text-left text-gray-700 hover:text-[#0C4A2E] cursor-pointer py-3">
               {item.question}
@@ -463,7 +463,8 @@ function Chatbot() {
           />
           <Button
             onClick={sendMessage}
-            className="bg-[#0C4A2E] hover:bg-[#166534] text-white h-9 w-9 p-0 cursor-pointer"
+            className="bg-[#0C4A2E] hover:bg-[#1A6B42] text-white h-9 w-9 p-0 cursor-pointer"
+            aria-label="Envoyer"
           >
             <Send className="h-4 w-4" />
           </Button>
@@ -483,8 +484,8 @@ function PaymentSimulator() {
 
   const breakdown = useMemo(() => {
     const base = amount;
-    const penalty = amount * 0.1; // 10% penalty for late
-    const stamp = 1; // Droit de timbre
+    const penalty = amount * 0.1;
+    const stamp = 1;
     return { base, penalty, stamp, total: base + penalty + stamp };
   }, [amount]);
 
@@ -503,7 +504,7 @@ function PaymentSimulator() {
           <div>
             <Label className="text-xs font-semibold text-gray-500">Type d&apos;impôt / نوع الضريبة</Label>
             <Select value={taxType} onValueChange={setTaxType}>
-              <SelectTrigger className="mt-1 h-10 rounded-xl cursor-pointer">
+              <SelectTrigger className="mt-1 h-11 rounded-xl cursor-pointer">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -521,7 +522,7 @@ function PaymentSimulator() {
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                className="h-10 rounded-xl pr-12 dzd-badge"
+                className="h-11 rounded-xl pr-12 dzd-badge"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
             </div>
@@ -564,8 +565,6 @@ function NotificationSettings() {
   const [emailDeadline, setEmailDeadline] = useState(true);
   const [smsPayment, setSmsPayment] = useState(false);
   const [emailPayment, setEmailPayment] = useState(true);
-  const [smsAudit, setSmsAudit] = useState(false);
-  const [emailAudit, setEmailAudit] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -578,7 +577,6 @@ function NotificationSettings() {
       </div>
 
       <div className="gov-card p-6 space-y-4">
-        {/* Deadline alerts */}
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-2">Alertes Échéances / تنبيهات الآجال</p>
           <div className="space-y-3">
@@ -592,10 +590,7 @@ function NotificationSettings() {
             </div>
           </div>
         </div>
-
         <Separator />
-
-        {/* Payment alerts */}
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-2">Alertes Paiement / تنبيهات الدفع</p>
           <div className="space-y-3">
@@ -606,23 +601,6 @@ function NotificationSettings() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600">Email — Reçu de paiement</span>
               <Switch checked={emailPayment} onCheckedChange={setEmailPayment} className="cursor-pointer" />
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Audit alerts */}
-        <div>
-          <p className="text-sm font-semibold text-gray-700 mb-2">Alertes Audit / تنبيهات التدقيق</p>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">SMS — Notification d&apos;audit</span>
-              <Switch checked={smsAudit} onCheckedChange={setSmsAudit} className="cursor-pointer" />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-600">Email — Rapport d&apos;audit</span>
-              <Switch checked={emailAudit} onCheckedChange={setEmailAudit} className="cursor-pointer" />
             </div>
           </div>
         </div>
@@ -638,7 +616,6 @@ function NotificationSettings() {
 export default function ServicesPage() {
   return (
     <div className="space-y-10 view-enter">
-      {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
           <Calculator className="h-5 w-5 text-[#0C4A2E]" />

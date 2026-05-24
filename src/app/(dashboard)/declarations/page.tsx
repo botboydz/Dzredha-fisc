@@ -11,6 +11,10 @@ import {
   Download,
   AlertTriangle,
   Clock,
+  Search,
+  Filter,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +22,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth-context";
 import { DeclarationBadge } from "@/components/gov/status-badge";
 
@@ -59,38 +70,48 @@ function formatDZD(amount: number): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Step Indicator                                                     */
+/*  Step Indicator — Enhanced                                          */
 /* ------------------------------------------------------------------ */
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
+  const progress = Math.round(((currentStep - 1) / (STEPS.length - 1)) * 100);
   return (
-    <div className="flex items-center gap-1 mb-6">
-      {STEPS.map((step, i) => (
-        <React.Fragment key={step.num}>
-          <div className="flex items-center gap-2">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
-                i + 1 < currentStep
-                  ? "step-completed"
-                  : i + 1 === currentStep
-                    ? "step-active"
-                    : "step-pending"
-              }`}
-            >
-              {i + 1 < currentStep ? <Check className="h-4 w-4" /> : step.num}
+    <div>
+      {/* Progress bar at top */}
+      <div className="h-1 bg-gray-100 rounded-full mb-4 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+      <div className="flex items-center gap-1">
+        {STEPS.map((step, i) => (
+          <React.Fragment key={step.num}>
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                  i + 1 < currentStep
+                    ? "step-completed shadow-soft"
+                    : i + 1 === currentStep
+                      ? "step-active shadow-card ring-2 ring-emerald-200"
+                      : "step-pending"
+                }`}
+              >
+                {i + 1 < currentStep ? <Check className="h-4 w-4" /> : step.num}
+              </div>
+              <div className="hidden sm:block">
+                <p className={`text-xs font-semibold ${i + 1 === currentStep ? "text-[#0C4A2E]" : "text-gray-400"}`}>
+                  {step.label}
+                </p>
+                <p className="text-[9px] text-gray-300">{step.labelAr}</p>
+              </div>
             </div>
-            <div className="hidden sm:block">
-              <p className={`text-xs font-semibold ${i + 1 === currentStep ? "text-[#0C4A2E]" : "text-gray-400"}`}>
-                {step.label}
-              </p>
-              <p className="text-[9px] text-gray-300">{step.labelAr}</p>
-            </div>
-          </div>
-          {i < STEPS.length - 1 && (
-            <div className={`flex-1 h-0.5 mx-2 rounded ${i + 1 < currentStep ? "bg-emerald-500" : "bg-gray-200"}`} />
-          )}
-        </React.Fragment>
-      ))}
+            {i < STEPS.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-2 rounded ${i + 1 < currentStep ? "bg-emerald-500" : "bg-gray-200"}`} />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
     </div>
   );
 }
@@ -108,7 +129,6 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
   const [submitStatus, setSubmitStatus] = useState<"idle" | "submitting" | "success">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Form data state
   const [formData, setFormData] = useState({
     nif: company?.nif || "00016XXXXXXXXX",
     nis: company?.nis || "16XXXXXX",
@@ -127,7 +147,6 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
     setTimeout(() => setAutoSaveStatus("idle"), 3000);
   };
 
-  // Calculations
   const calculations = useMemo(() => {
     const revenue = Number(formData.revenue) || 0;
     const expenses = Number(formData.expenses) || 0;
@@ -176,6 +195,14 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
     return agreed;
   };
 
+  // Validation indicators
+  const isValid = (field: string) => {
+    if (field === "nif") return formData.nif.length > 5;
+    if (field === "companyName") return formData.companyName.length > 2;
+    if (field === "revenue") return Number(formData.revenue) > 0;
+    return false;
+  };
+
   return (
     <div>
       {/* Auto-save indicator */}
@@ -196,42 +223,55 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
 
       {/* Step 1: Informations Contribuable */}
       {step === 1 && (
-        <div className="gov-card p-6 space-y-4">
+        <div className="gov-card p-6 space-y-4 mt-4">
           <h3 className="gov-section-title">Informations du Contribuable / معلومات المكلف</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="text-xs font-semibold text-gray-500">NIF (Numéro d'Identification Fiscale)</Label>
-              <Input
-                value={formData.nif}
-                onChange={(e) => updateField("nif", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
-                placeholder="00016XXXXXXXXX"
-              />
+              <Label className="text-xs font-semibold text-gray-500">NIF (Numéro d&apos;Identification Fiscale)</Label>
+              <div className="relative mt-1">
+                <Input
+                  value={formData.nif}
+                  onChange={(e) => updateField("nif", e.target.value)}
+                  className="h-11 rounded-xl pr-8"
+                  placeholder="00016XXXXXXXXX"
+                />
+                {isValid("nif") && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                )}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1">Identifiant fiscal unique à 15 chiffres</p>
             </div>
             <div>
-              <Label className="text-xs font-semibold text-gray-500">NIS (Numéro d'Identification Statistique)</Label>
+              <Label className="text-xs font-semibold text-gray-500">NIS (Numéro d&apos;Identification Statistique)</Label>
               <Input
                 value={formData.nis}
                 onChange={(e) => updateField("nis", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
                 placeholder="16XXXXXX"
               />
+              <p className="text-[10px] text-gray-400 mt-1">Numéro délivré par l&apos;ONS</p>
             </div>
             <div>
               <Label className="text-xs font-semibold text-gray-500">Raison Sociale / اسم الشركة</Label>
-              <Input
-                value={formData.companyName}
-                onChange={(e) => updateField("companyName", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
-              />
+              <div className="relative mt-1">
+                <Input
+                  value={formData.companyName}
+                  onChange={(e) => updateField("companyName", e.target.value)}
+                  className="h-11 rounded-xl pr-8"
+                />
+                {isValid("companyName") && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                )}
+              </div>
             </div>
             <div>
               <Label className="text-xs font-semibold text-gray-500">Wilaya / الولاية</Label>
               <Input
                 value={formData.wilaya}
                 onChange={(e) => updateField("wilaya", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
+              <p className="text-[10px] text-gray-400 mt-1">Wilaya du siège social</p>
             </div>
           </div>
         </div>
@@ -239,7 +279,7 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
 
       {/* Step 2: Données Financières */}
       {step === 2 && (
-        <div className="gov-card p-6 space-y-4">
+        <div className="gov-card p-6 space-y-4 mt-4">
           <h3 className="gov-section-title">Données Financières / البيانات المالية</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -251,10 +291,14 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
                   type="number"
                   value={formData.revenue}
                   onChange={(e) => updateField("revenue", e.target.value)}
-                  className="h-10 rounded-xl pr-12 dzd-badge"
+                  className="h-11 rounded-xl pr-12 dzd-badge"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
+                {isValid("revenue") && (
+                  <CheckCircle2 className="absolute right-16 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
+                )}
               </div>
+              <p className="text-[10px] text-gray-400 mt-1">Total des ventes hors taxes pour la période</p>
             </div>
             <div>
               <Label className="text-xs font-semibold text-gray-500">
@@ -265,7 +309,7 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
                   type="number"
                   value={formData.expenses}
                   onChange={(e) => updateField("expenses", e.target.value)}
-                  className="h-10 rounded-xl pr-12 dzd-badge"
+                  className="h-11 rounded-xl pr-12 dzd-badge"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
               </div>
@@ -279,7 +323,7 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
                   type="number"
                   value={formData.deductions}
                   onChange={(e) => updateField("deductions", e.target.value)}
-                  className="h-10 rounded-xl pr-12 dzd-badge"
+                  className="h-11 rounded-xl pr-12 dzd-badge"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
               </div>
@@ -294,10 +338,11 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
                     type="number"
                     value={formData.salaryMass}
                     onChange={(e) => updateField("salaryMass", e.target.value)}
-                    className="h-10 rounded-xl pr-12 dzd-badge"
+                    className="h-11 rounded-xl pr-12 dzd-badge"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
                 </div>
+                <p className="text-[10px] text-gray-400 mt-1">Total des salaires bruts mensuels</p>
               </div>
             )}
           </div>
@@ -306,8 +351,8 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
 
       {/* Step 3: Calcul */}
       {step === 3 && (
-        <div className="space-y-4">
-          <div className="bg-gradient-to-br from-emerald-700 to-teal-800 rounded-xl p-6 text-white shadow-xl">
+        <div className="space-y-4 mt-4">
+          <div className="bg-gradient-to-br from-emerald-700 to-teal-800 rounded-xl p-6 text-white shadow-card">
             <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">
               Montant Calculé — {DECLARATION_TYPES.find((d) => d.key === type)?.label}
             </p>
@@ -357,7 +402,7 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
 
       {/* Step 4: Vérification & Soumission */}
       {step === 4 && (
-        <div className="space-y-4">
+        <div className="space-y-4 mt-4">
           <div className="gov-card p-6">
             <h3 className="gov-section-title mb-4">Récapitulatif / ملخص</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -457,14 +502,14 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
             setTimeout(() => setAutoSaveStatus("idle"), 3000);
           }}>
             <Save className="h-3.5 w-3.5" />
-            Brouillon
+            Sauvegarder
           </Button>
 
           {step < 4 ? (
             <Button
               onClick={() => setStep(step + 1)}
               disabled={!canAdvance()}
-              className="bg-[#0C4A2E] hover:bg-[#166534] text-white gap-1 cursor-pointer"
+              className="bg-[#0C4A2E] hover:bg-[#1A6B42] text-white gap-1 cursor-pointer"
             >
               Suivant
               <ChevronRight className="h-4 w-4" />
@@ -514,6 +559,17 @@ function DeclarationForm({ type, declarations, setDeclarations }: { type: string
 export default function DeclarationsPage() {
   const [activeType, setActiveType] = useState("TAP");
   const [declarations, setDeclarations] = useState(MOCK_DECLARATIONS);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredDeclarations = declarations.filter((d) => {
+    const matchesSearch = d.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.type.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === "all" || d.status === filterStatus;
+    const matchesType = filterType === "all" || d.type === filterType;
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   const exportToCSV = () => {
     const headers = ["Réf", "Type", "Période", "Statut", "Montant", "Date"];
@@ -534,10 +590,11 @@ export default function DeclarationsPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
   return (
     <div className="space-y-6 view-enter">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
             <FileText className="h-5 w-5 text-[#0C4A2E]" />
@@ -545,15 +602,52 @@ export default function DeclarationsPage() {
           </h1>
           <p className="text-xs text-gray-500 mt-1">Créez et gérez vos déclarations fiscales</p>
         </div>
-        <Button className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
+        <Button className="bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer" onClick={exportToCSV}>
           <Download className="h-3.5 w-3.5" />
           Export
         </Button>
       </div>
 
-      {/* Existing declarations */}
+      {/* Existing declarations with filters */}
       <div>
         <h2 className="gov-section-title mb-3">Déclarations Existantes / التصريحات الموجودة</h2>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Input
+              placeholder="Rechercher par réf ou type..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-9 rounded-xl text-xs"
+            />
+          </div>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-36 h-9 rounded-xl text-xs cursor-pointer">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">Tous les statuts</SelectItem>
+              <SelectItem value="draft" className="cursor-pointer">Brouillon</SelectItem>
+              <SelectItem value="submitted" className="cursor-pointer">Soumis</SelectItem>
+              <SelectItem value="approved" className="cursor-pointer">Approuvé</SelectItem>
+              <SelectItem value="rejected" className="cursor-pointer">Rejeté</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-36 h-9 rounded-xl text-xs cursor-pointer">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="cursor-pointer">Tous les types</SelectItem>
+              {DECLARATION_TYPES.map((dt) => (
+                <SelectItem key={dt.key} value={dt.key} className="cursor-pointer">{dt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="overflow-hidden rounded-xl border border-gray-200">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="gov-table">
@@ -568,8 +662,8 @@ export default function DeclarationsPage() {
                 </tr>
               </thead>
               <tbody>
-                {declarations.map((dec) => (
-                  <tr key={dec.id}>
+                {filteredDeclarations.map((dec) => (
+                  <tr key={dec.id} className="cursor-pointer">
                     <td className="font-mono text-xs">{dec.id}</td>
                     <td className="font-semibold text-sm">{dec.type}</td>
                     <td className="text-sm">{dec.period}</td>
@@ -582,6 +676,16 @@ export default function DeclarationsPage() {
             </table>
           </div>
         </div>
+
+        {filteredDeclarations.length === 0 && (
+          <div className="empty-state py-8">
+            <div className="empty-state-icon bg-gray-50">
+              <FileText className="h-6 w-6 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-400">Aucune déclaration trouvée</p>
+            <p className="text-[10px] text-gray-300 mt-1">Modifiez vos filtres ou créez une nouvelle déclaration</p>
+          </div>
+        )}
       </div>
 
       {/* Declaration type tabs */}

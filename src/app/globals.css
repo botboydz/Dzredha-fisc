@@ -78,38 +78,115 @@
   --sidebar-ring: oklch(0.4 0.12 155);
 }
 
+/* ============================================================ */
+/*  Base & Typography                                            */
+/* ============================================================ */
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   body {
     @apply bg-background text-foreground;
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
   }
 }
 
+/* Text balance for headings */
+.text-balance {
+  text-wrap: balance;
+}
+
 /* ============================================================ */
-/*  DZ-Fisc Design System                                        */
+/*  DZ-Fisc Design System — Color Tokens                        */
 /* ============================================================ */
 
-/* Sidebar */
+:root {
+  --dz-primary: #0C4A2E;
+  --dz-primary-hover: #1A6B42;
+  --dz-primary-light: #F0FDF4;
+  --dz-gold: #B8860B;
+  --dz-gold-light: #FEF3C7;
+  --dz-bg: #FAFAF8;
+  --dz-bg-warm: #F8FAF9;
+  --dz-text: #1A1A1A;
+  --dz-text-muted: #6B7280;
+  --dz-text-light: #9CA3AF;
+  --dz-error: #E54D4D;
+  --dz-error-light: #FEF2F2;
+  --dz-border: rgba(0, 0, 0, 0.06);
+  --dz-border-strong: rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================ */
+/*  Shadow System                                                */
+/* ============================================================ */
+
+.shadow-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-elevated {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-modal {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================================ */
+/*  Transition System                                            */
+/* ============================================================ */
+
+.transition-base {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================ */
+/*  Sidebar                                                      */
+/* ============================================================ */
+
 .sidebar-bg {
-  background: linear-gradient(180deg, #052e16 0%, #064e3b 40%, #065f46 100%);
+  background: linear-gradient(180deg, #052e16 0%, #0a4025 40%, #0d5030 100%);
 }
 
 .sidebar-item {
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-item:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-item.active {
-  background: rgba(16, 185, 129, 0.15);
-  border-right: 3px solid #34d399;
+  background: rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #B8860B;
+  padding-left: calc(0.75rem - 3px);
 }
 
-/* Score ring */
+.sidebar-item:hover .sidebar-item-icon {
+  transform: scale(1.05);
+}
+
+/* ============================================================ */
+/*  Score Ring & Compliance                                      */
+/* ============================================================ */
+
 @keyframes scoreReveal {
   from { stroke-dashoffset: 283; }
 }
@@ -118,7 +195,10 @@
   transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Fade-in animations */
+/* ============================================================ */
+/*  Animations                                                   */
+/* ============================================================ */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -150,6 +230,20 @@
   animation: pulseDot 2s ease-in-out infinite;
 }
 
+/* Notification bell bounce */
+@keyframes bellBounce {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(14deg); }
+  30% { transform: rotate(-8deg); }
+  45% { transform: rotate(6deg); }
+  60% { transform: rotate(-2deg); }
+  75% { transform: rotate(1deg); }
+}
+
+.bell-bounce {
+  animation: bellBounce 0.8s ease-in-out;
+}
+
 /* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #059669 0%, #10b981 40%, #34d399 100%);
@@ -160,15 +254,18 @@
 
 /* Card hover */
 .card-hover {
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(5, 150, 105, 0.08);
+  box-shadow: 0 4px 16px rgba(12, 74, 46, 0.06), 0 2px 6px rgba(12, 74, 46, 0.04);
 }
 
-/* Custom scrollbar */
+/* ============================================================ */
+/*  Custom Scrollbar                                             */
+/* ============================================================ */
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 5px;
   height: 5px;
@@ -187,8 +284,11 @@
   background: #94a3b8;
 }
 
-/* Deadline urgency indicators */
-.urgency-overdue { border-left: 3px solid #ef4444; }
+/* ============================================================ */
+/*  Urgency Indicators                                           */
+/* ============================================================ */
+
+.urgency-overdue { border-left: 3px solid #E54D4D; }
 .urgency-urgent { border-left: 3px solid #f97316; }
 .urgency-soon { border-left: 3px solid #eab308; }
 .urgency-normal { border-left: 3px solid #22c55e; }
@@ -198,7 +298,10 @@
   animation: fadeInUp 0.35s ease-out forwards;
 }
 
-/* Green button glow */
+/* ============================================================ */
+/*  Button Effects                                               */
+/* ============================================================ */
+
 .btn-green-glow {
   position: relative;
   overflow: hidden;
@@ -220,7 +323,10 @@
   opacity: 0.4;
 }
 
-/* Number counter animation */
+/* ============================================================ */
+/*  Number Counter Animation                                     */
+/* ============================================================ */
+
 @keyframes countUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -243,15 +349,15 @@
 /* Government Card */
 .gov-card {
   background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
   padding: 1.25rem;
   position: relative;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .gov-card:hover {
-  box-shadow: 0 4px 16px rgba(12, 74, 46, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .gov-card-accent {
@@ -259,7 +365,7 @@
 }
 
 .gov-card-accent-red {
-  border-left: 4px solid #DC2626;
+  border-left: 4px solid #E54D4D;
 }
 
 .gov-card-accent-orange {
@@ -286,7 +392,10 @@
   border-left: 4px solid #0D9488;
 }
 
-/* Government Table */
+/* ============================================================ */
+/*  Government Table                                             */
+/* ============================================================ */
+
 .gov-table {
   width: 100%;
   border-collapse: collapse;
@@ -294,7 +403,7 @@
 }
 
 .gov-table thead tr {
-  background: #0C4A2E;
+  background: rgba(12, 74, 46, 0.95);
 }
 
 .gov-table thead th {
@@ -308,11 +417,15 @@
 }
 
 .gov-table tbody tr:nth-child(even) {
-  background: #FAFAF8;
+  background: #F8FAF9;
 }
 
 .gov-table tbody tr:nth-child(odd) {
   background: #FFFFFF;
+}
+
+.gov-table tbody tr {
+  transition: background 0.15s ease;
 }
 
 .gov-table tbody tr:hover {
@@ -321,7 +434,7 @@
 
 .gov-table tbody td {
   padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .gov-table tfoot tr {
@@ -334,10 +447,13 @@
   font-weight: 700;
 }
 
-/* Official Document Frame */
+/* ============================================================ */
+/*  Official Document Frame                                      */
+/* ============================================================ */
+
 .doc-frame {
   border: 2px solid #0C4A2E;
-  border-radius: 0.5rem;
+  border-radius: 12px;
   padding: 1.5rem;
   position: relative;
   background: white;
@@ -373,7 +489,10 @@
   pointer-events: none;
 }
 
-/* Government Stamp */
+/* ============================================================ */
+/*  Government Stamp                                             */
+/* ============================================================ */
+
 .gov-stamp {
   width: 4rem;
   height: 4rem;
@@ -399,13 +518,26 @@
   border-radius: 50%;
 }
 
-/* Government Header Bar */
+/* ============================================================ */
+/*  Government Header Bar                                        */
+/* ============================================================ */
+
 .gov-header-bar {
   background: #0C4A2E;
   border-bottom: 3px solid #B8860B;
+  transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
 
-/* Government Section Title */
+.gov-header-bar-scrolled {
+  background: rgba(12, 74, 46, 0.97);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ============================================================ */
+/*  Government Section Title                                     */
+/* ============================================================ */
+
 .gov-section-title {
   font-size: 0.75rem;
   font-weight: 700;
@@ -416,10 +548,13 @@
 
 .gov-section-subtitle {
   font-size: 0.625rem;
-  color: #666666;
+  color: #6B7280;
 }
 
-/* Skeleton Shimmer */
+/* ============================================================ */
+/*  Skeleton Shimmer                                             */
+/* ============================================================ */
+
 @keyframes skeleton-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -467,7 +602,10 @@
 .skeleton-delay-7 { animation-delay: 0.7s; }
 .skeleton-delay-8 { animation-delay: 0.8s; }
 
-/* QR Code Placeholder */
+/* ============================================================ */
+/*  QR Code Placeholder                                          */
+/* ============================================================ */
+
 .qr-placeholder {
   width: 3rem;
   height: 3rem;
@@ -482,7 +620,10 @@
   background: repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%) 50% / 8px 8px;
 }
 
-/* Step Indicator */
+/* ============================================================ */
+/*  Step Indicator                                               */
+/* ============================================================ */
+
 .step-active {
   background: #0C4A2E;
   color: white;
@@ -498,7 +639,10 @@
   color: #9CA3AF;
 }
 
-/* Compliance Ring */
+/* ============================================================ */
+/*  Compliance Ring                                              */
+/* ============================================================ */
+
 .compliance-ring {
   transform: rotate(-90deg);
 }
@@ -516,13 +660,16 @@
   transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Drop Zone */
+/* ============================================================ */
+/*  Drop Zone                                                    */
+/* ============================================================ */
+
 .drop-zone {
-  border: 2px dashed #d1d5db;
-  border-radius: 0.75rem;
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
   padding: 2rem;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
 }
 
@@ -534,9 +681,13 @@
 .drop-zone-active {
   border-color: #0C4A2E;
   background: #F0FDF4;
+  transform: scale(1.01);
 }
 
-/* Chat Bubble */
+/* ============================================================ */
+/*  Chat Bubble                                                  */
+/* ============================================================ */
+
 .chat-bubble-user {
   background: #0C4A2E;
   color: white;
@@ -547,4 +698,224 @@
   background: #F3F4F6;
   color: #1A1A1A;
   border-radius: 1rem 1rem 1rem 0.25rem;
+}
+
+/* ============================================================ */
+/*  Progress Bar Styling                                         */
+/* ============================================================ */
+
+.gov-progress {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.gov-progress [role="progressbar"] > div {
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================ */
+/*  Stat Card Enhancement                                        */
+/* ============================================================ */
+
+.stat-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card-progress {
+  height: 3px;
+  border-radius: 2px;
+  background: #E5E7EB;
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.stat-card-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================ */
+/*  Welcome Banner                                               */
+/* ============================================================ */
+
+.welcome-banner {
+  background: linear-gradient(135deg, #F0FDF4 0%, #F8FAF9 50%, #FEF3C7 100%);
+  border: 1px solid rgba(12, 74, 46, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+/* ============================================================ */
+/*  Activity Timeline                                            */
+/* ============================================================ */
+
+.timeline-item {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  top: 1.5rem;
+  bottom: -0.75rem;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.timeline-item:last-child::before {
+  display: none;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 2px solid;
+  background: white;
+}
+
+/* ============================================================ */
+/*  Government Pattern Overlay                                   */
+/* ============================================================ */
+
+.gov-pattern-overlay {
+  position: relative;
+}
+
+.gov-pattern-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 20px,
+    rgba(12, 74, 46, 0.5) 20px,
+    rgba(12, 74, 46, 0.5) 21px
+  );
+  border-radius: inherit;
+}
+
+/* ============================================================ */
+/*  Institutional Footer                                         */
+/* ============================================================ */
+
+.gov-footer {
+  background: #0C4A2E;
+  border-top: 2px solid rgba(184, 134, 11, 0.3);
+  padding: 1rem 1.5rem;
+  text-align: center;
+}
+
+.gov-footer p {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.625rem;
+  line-height: 1.6;
+}
+
+.gov-footer a {
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s ease;
+}
+
+.gov-footer a:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================================ */
+/*  Security Badge                                               */
+/* ============================================================ */
+
+.security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================ */
+/*  Empty State                                                  */
+/* ============================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* ============================================================ */
+/*  Focus Ring for Accessibility                                  */
+/* ============================================================ */
+
+.focus-ring:focus-visible {
+  outline: 2px solid #0C4A2E;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip navigation link */
+.skip-nav {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: #0C4A2E;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 0.5rem 0;
+  transition: top 0.2s ease;
+}
+
+.skip-nav:focus {
+  top: 0;
+}
+
+/* ============================================================ */
+/*  Mobile Touch Targets                                         */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }

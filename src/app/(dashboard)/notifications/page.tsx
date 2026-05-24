@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
+  Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,78 +32,14 @@ interface Notification {
 }
 
 const INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: "N-001",
-    title: "Échéance TAP — Mai 2026",
-    titleAr: "آجال ض.م.م — ماي 2026",
-    message: "La déclaration TAP pour Mai 2026 est due avant le 20 Mai. Montant estimé : 145 000 DZD.",
-    timestamp: "2026-05-18 08:00",
-    type: "urgent",
-    read: false,
-  },
-  {
-    id: "N-002",
-    title: "Échéance TVA — Mai 2026",
-    titleAr: "آجال ر.ق — ماي 2026",
-    message: "La déclaration TVA pour Mai 2026 est due avant le 20 Mai. Montant estimé : 2 755 000 DZD.",
-    timestamp: "2026-05-18 08:00",
-    type: "deadline",
-    read: false,
-  },
-  {
-    id: "N-003",
-    title: "Paiement IBS confirmé",
-    titleAr: "تأكيد دفع ض.أ.ش",
-    message: "Le paiement de l'IBS T1 2026 de 1 850 000 DZD a été confirmé par la DGI.",
-    timestamp: "2026-05-15 14:30",
-    type: "payment",
-    read: true,
-  },
-  {
-    id: "N-004",
-    title: "Liasse fiscale en retard",
-    titleAr: "الملف الجبائي متأخر",
-    message: "La liasse fiscale annuelle 2025 n'a pas encore été soumise. Des pénalités pourraient s'appliquer.",
-    timestamp: "2026-05-12 09:00",
-    type: "urgent",
-    read: false,
-  },
-  {
-    id: "N-005",
-    title: "Mise à jour du barème IRG",
-    titleAr: "تحديث سلم ض.د.ع",
-    message: "Le barème IRG a été mis à jour conformément à la loi de finances 2026. Consultez les nouveaux taux.",
-    timestamp: "2026-05-10 10:00",
-    type: "info",
-    read: true,
-  },
-  {
-    id: "N-006",
-    title: "Cotisations CNAS — Mai 2026",
-    titleAr: "اشتراكات ص.و.ت.ش — ماي 2026",
-    message: "Les cotisations CNAS du mois de Mai 2026 s'élèvent à 201 250 DZD. Échéance : 31 Mai.",
-    timestamp: "2026-05-08 16:00",
-    type: "deadline",
-    read: true,
-  },
-  {
-    id: "N-007",
-    title: "Déclaration TAP rejetée",
-    titleAr: "تصريح ض.م.م مرفوض",
-    message: "La déclaration TAP Mai 2026 a été rejetée. Veuillez vérifier les données et resoumettre.",
-    timestamp: "2026-05-10 11:30",
-    type: "urgent",
-    read: false,
-  },
-  {
-    id: "N-008",
-    title: "Paiement TVA Avril confirmé",
-    titleAr: "تأكيد دفع ر.ق أفريل",
-    message: "Le paiement de la TVA Avril 2026 de 2 480 000 DZD a été enregistré avec succès.",
-    timestamp: "2026-05-02 09:15",
-    type: "payment",
-    read: true,
-  },
+  { id: "N-001", title: "Échéance TAP — Mai 2026", titleAr: "آجال ض.م.م — ماي 2026", message: "La déclaration TAP pour Mai 2026 est due avant le 20 Mai. Montant estimé : 145 000 DZD.", timestamp: "2026-05-18 08:00", type: "urgent", read: false },
+  { id: "N-002", title: "Échéance TVA — Mai 2026", titleAr: "آجال ر.ق — ماي 2026", message: "La déclaration TVA pour Mai 2026 est due avant le 20 Mai. Montant estimé : 2 755 000 DZD.", timestamp: "2026-05-18 08:00", type: "deadline", read: false },
+  { id: "N-003", title: "Paiement IBS confirmé", titleAr: "تأكيد دفع ض.أ.ش", message: "Le paiement de l'IBS T1 2026 de 1 850 000 DZD a été confirmé par la DGI.", timestamp: "2026-05-15 14:30", type: "payment", read: true },
+  { id: "N-004", title: "Liasse fiscale en retard", titleAr: "الملف الجبائي متأخر", message: "La liasse fiscale annuelle 2025 n'a pas encore été soumise. Des pénalités pourraient s'appliquer.", timestamp: "2026-05-12 09:00", type: "urgent", read: false },
+  { id: "N-005", title: "Mise à jour du barème IRG", titleAr: "تحديث سلم ض.د.ع", message: "Le barème IRG a été mis à jour conformément à la loi de finances 2026. Consultez les nouveaux taux.", timestamp: "2026-05-10 10:00", type: "info", read: true },
+  { id: "N-006", title: "Cotisations CNAS — Mai 2026", titleAr: "اشتراكات ص.و.ت.ش — ماي 2026", message: "Les cotisations CNAS du mois de Mai 2026 s'élèvent à 201 250 DZD. Échéance : 31 Mai.", timestamp: "2026-05-08 16:00", type: "deadline", read: true },
+  { id: "N-007", title: "Déclaration TAP rejetée", titleAr: "تصريح ض.م.م مرفوض", message: "La déclaration TAP Mai 2026 a été rejetée. Veuillez vérifier les données et resoumettre.", timestamp: "2026-05-10 11:30", type: "urgent", read: false },
+  { id: "N-008", title: "Paiement TVA Avril confirmé", titleAr: "تأكيد دفع ر.ق أفريل", message: "Le paiement de la TVA Avril 2026 de 2 480 000 DZD a été enregistré avec succès.", timestamp: "2026-05-02 09:15", type: "payment", read: true },
 ];
 
 const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bgColor: string }> = {
@@ -126,6 +63,9 @@ export default function NotificationsPage() {
   });
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const urgentCount = notifications.filter((n) => n.type === "urgent" && !n.read).length;
+  const deadlineCount = notifications.filter((n) => n.type === "deadline" && !n.read).length;
+  const paymentCount = notifications.filter((n) => n.type === "payment").length;
 
   const markAsRead = (id: string) => {
     setNotifications((prev) =>
@@ -169,7 +109,7 @@ export default function NotificationsPage() {
         </Button>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Filter Tabs with counts */}
       <Tabs value={filter} onValueChange={setFilter}>
         <TabsList className="bg-gray-100 p-1 rounded-xl h-auto flex-wrap">
           <TabsTrigger value="all" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
@@ -179,21 +119,21 @@ export default function NotificationsPage() {
             Non lues ({unreadCount})
           </TabsTrigger>
           <TabsTrigger value="urgent" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
-            Urgentes
+            Urgentes ({urgentCount})
+          </TabsTrigger>
+          <TabsTrigger value="deadline" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
+            Échéances ({deadlineCount})
+          </TabsTrigger>
+          <TabsTrigger value="payment" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
+            Paiements ({paymentCount})
           </TabsTrigger>
           <TabsTrigger value="info" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
             Informations
           </TabsTrigger>
-          <TabsTrigger value="deadline" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
-            Échéances
-          </TabsTrigger>
-          <TabsTrigger value="payment" className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer">
-            Paiements
-          </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {/* Notification Cards */}
+      {/* Notification Cards with timeline */}
       <div className="space-y-2">
         {filteredNotifications.map((notification) => {
           const config = TYPE_CONFIG[notification.type];
@@ -202,7 +142,7 @@ export default function NotificationsPage() {
           return (
             <div
               key={notification.id}
-              className={`gov-card p-4 flex items-start gap-4 transition-all ${
+              className={`stat-card p-4 flex items-start gap-4 transition-all ${
                 !notification.read ? "border-l-4 border-l-[#0C4A2E] bg-white" : "bg-gray-50/50"
               }`}
             >
@@ -219,11 +159,14 @@ export default function NotificationsPage() {
                     <p className="text-[10px] text-gray-400">{notification.titleAr}</p>
                   </div>
                   {!notification.read && (
-                    <span className="flex h-2 w-2 shrink-0 rounded-full bg-[#0C4A2E] mt-1.5" />
+                    <span className="flex h-2.5 w-2.5 shrink-0 rounded-full bg-[#0C4A2E] mt-1.5" />
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">{notification.message}</p>
-                <p className="text-[10px] text-gray-400 mt-1">{notification.timestamp}</p>
+                <p className="text-[10px] text-gray-400 mt-1.5 flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {notification.timestamp}
+                </p>
               </div>
 
               <div className="flex gap-1 shrink-0">
@@ -234,6 +177,7 @@ export default function NotificationsPage() {
                     onClick={() => markAsRead(notification.id)}
                     className="h-7 w-7 p-0 cursor-pointer text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                     title="Marquer comme lu"
+                    aria-label="Marquer comme lu"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" />
                   </Button>
@@ -244,6 +188,7 @@ export default function NotificationsPage() {
                   onClick={() => deleteNotification(notification.id)}
                   className="h-7 w-7 p-0 cursor-pointer text-red-400 hover:text-red-600 hover:bg-red-50"
                   title="Supprimer"
+                  aria-label="Supprimer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -253,9 +198,12 @@ export default function NotificationsPage() {
         })}
 
         {filteredNotifications.length === 0 && (
-          <div className="text-center py-12 text-gray-400">
-            <Bell className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Aucune notification / لا توجد إشعارات</p>
+          <div className="empty-state py-16">
+            <div className="empty-state-icon bg-emerald-50">
+              <Inbox className="h-6 w-6 text-emerald-300" />
+            </div>
+            <p className="text-sm text-gray-400 mt-2">Aucune notification / لا توجد إشعارات</p>
+            <p className="text-[10px] text-gray-300 mt-1">Vous êtes à jour ! Revenez plus tard.</p>
           </div>
         )}
       </div>

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Landmark, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Landmark, Mail, Lock, User, ArrowRight, Shield, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,7 +60,7 @@ export default function SignupPage() {
 
       setSuccess(true);
     } catch {
-      setError("Une erreur inattendue s'est produite.");
+      setError("Une erreur inattendue s'est produite. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -68,14 +68,14 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0fdf4] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] px-4">
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
           <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-teal-100/40 blur-3xl" />
         </div>
 
         <div className="w-full max-w-md relative z-10">
-          <Card className="rounded-2xl border-emerald-100/60 shadow-xl shadow-emerald-500/5 bg-white/90 backdrop-blur-xl">
+          <Card className="rounded-2xl border-emerald-100/60 shadow-elevated bg-white/95 backdrop-blur-xl">
             <CardContent className="pt-8 text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 mb-4">
                 <Mail className="h-8 w-8 text-emerald-600" />
@@ -102,8 +102,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f0fdf4] px-4">
-      {/* Background decoration */}
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAF9] px-4">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-teal-100/40 blur-3xl" />
@@ -112,17 +111,30 @@ export default function SignupPage() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo & brand */}
         <div className="text-center mb-8">
-          <Image src="/logo.png" alt="DZ-Fisc" width={64} height={64} className="rounded-2xl shadow-lg" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-card mb-4">
+            <Image src="/logo.png" alt="DZ-Fisc" width={48} height={48} className="rounded-xl" />
+          </div>
           <h1 className="text-2xl font-extrabold text-gray-900">
             DZ-Fisc
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             Créer votre compte / إنشاء حسابك
           </p>
+          {/* Security badges */}
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <div className="security-badge bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <Shield className="h-3 w-3" />
+              Sécurisé
+            </div>
+            <div className="security-badge bg-amber-50 text-amber-700 border border-amber-200">
+              <Globe className="h-3 w-3" />
+              Officiel DGI
+            </div>
+          </div>
         </div>
 
         {/* Signup card */}
-        <Card className="rounded-2xl border-emerald-100/60 shadow-xl shadow-emerald-500/5 bg-white/90 backdrop-blur-xl">
+        <Card className="rounded-2xl border-emerald-100/60 shadow-elevated bg-white/95 backdrop-blur-xl">
           <CardContent className="pt-6">
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="space-y-2">
@@ -138,7 +150,7 @@ export default function SignupPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
-                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -156,7 +168,7 @@ export default function SignupPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -174,9 +186,10 @@ export default function SignupPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
+                <p className="text-[10px] text-gray-400">Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre</p>
               </div>
 
               <div className="space-y-2">
@@ -192,7 +205,7 @@ export default function SignupPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                    className="pl-10 h-11 rounded-xl border-gray-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
                   />
                 </div>
               </div>
@@ -206,7 +219,7 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition-all hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-xl gap-2 cursor-pointer shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
@@ -226,7 +239,7 @@ export default function SignupPage() {
           <CardFooter className="flex-col gap-3 pb-6">
             <div className="w-full border-t border-gray-100 my-2" />
             <p className="text-sm text-gray-500">
-              Déjà un compte؟ / لديك حساب بالفعل؟{" "}
+              Déjà un compte ?{" "}
               <a
                 href="/login"
                 className="font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
@@ -245,7 +258,7 @@ export default function SignupPage() {
 
         {/* Footer */}
         <p className="text-center text-[10px] text-gray-400 mt-6">
-          DZ-Fisc v1.0 — Conformité fiscale algérienne automatisée
+          DZ-Fisc v2.0 — République Algérienne Démocratique et Populaire
         </p>
       </div>
     </div>

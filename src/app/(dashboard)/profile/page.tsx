@@ -10,6 +10,9 @@ import {
   Save,
   X,
   CheckCircle2,
+  Mail,
+  Phone,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +28,6 @@ export default function ProfilePage() {
   const { user, profile, company } = useAuth();
   const [editing, setEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  // Form state
   const [formData, setFormData] = useState({
     fullName: profile?.full_name || "Utilisateur Demo",
     email: user?.email || "demo@dz-fisc.dz",
@@ -77,14 +79,13 @@ export default function ProfilePage() {
                     const supabase = getSupabaseBrowserClient();
                     if (supabase) {
                       // Update profile if we have one
-                      // For now, just save locally
                     }
                   } catch {}
                   setSaveSuccess(true);
                   setEditing(false);
                   setTimeout(() => setSaveSuccess(false), 3000);
                 }}
-                className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer"
+                className="bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer"
               >
                 <Save className="h-3 w-3" />
                 Enregistrer / حفظ
@@ -94,7 +95,7 @@ export default function ProfilePage() {
             <Button
               size="sm"
               onClick={() => setEditing(true)}
-              className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer"
+              className="bg-[#0C4A2E] hover:bg-[#1A6B42] text-white text-xs gap-1 cursor-pointer"
             >
               <Edit3 className="h-3 w-3" />
               Modifier / تعديل
@@ -103,21 +104,23 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Personal Information */}
+      {/* Personal Information Card */}
       <div className="gov-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <User className="h-4 w-4 text-[#0C4A2E]" />
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+            <User className="h-4 w-4 text-emerald-600" />
+          </div>
           <h2 className="gov-section-title">Informations Personnelles / المعلومات الشخصية</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <Label className="text-xs font-semibold text-gray-500">Nom complet / الاسم الكامل</Label>
             {editing ? (
               <Input
                 value={formData.fullName}
                 onChange={(e) => updateField("fullName", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
               <p className="mt-1 text-sm font-medium text-gray-800">{formData.fullName}</p>
@@ -130,11 +133,14 @@ export default function ProfilePage() {
               <Input
                 value={formData.email}
                 onChange={(e) => updateField("email", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
                 type="email"
               />
             ) : (
-              <p className="mt-1 text-sm font-medium text-gray-800">{formData.email}</p>
+              <p className="mt-1 text-sm font-medium text-gray-800 flex items-center gap-1">
+                <Mail className="h-3 w-3 text-gray-400" />
+                {formData.email}
+              </p>
             )}
           </div>
 
@@ -144,30 +150,35 @@ export default function ProfilePage() {
               <Input
                 value={formData.phone}
                 onChange={(e) => updateField("phone", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
-              <p className="mt-1 text-sm font-medium text-gray-800">{formData.phone}</p>
+              <p className="mt-1 text-sm font-medium text-gray-800 flex items-center gap-1">
+                <Phone className="h-3 w-3 text-gray-400" />
+                {formData.phone}
+              </p>
             )}
           </div>
         </div>
       </div>
 
-      {/* Company Details */}
-      <div className="gov-card p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Building2 className="h-4 w-4 text-[#0C4A2E]" />
+      {/* Company Details Card */}
+      <div className="gov-card gov-card-accent p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+            <Building2 className="h-4 w-4 text-emerald-600" />
+          </div>
           <h2 className="gov-section-title">Détails de l&apos;Entreprise / تفاصيل الشركة</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
             <Label className="text-xs font-semibold text-gray-500">Raison Sociale / اسم الشركة</Label>
             {editing ? (
               <Input
                 value={formData.companyName}
                 onChange={(e) => updateField("companyName", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
               <p className="mt-1 text-sm font-medium text-gray-800">{formData.companyName}</p>
@@ -180,10 +191,10 @@ export default function ProfilePage() {
               <Input
                 value={formData.nif}
                 onChange={(e) => updateField("nif", e.target.value)}
-                className="mt-1 h-10 rounded-xl font-mono"
+                className="mt-1 h-11 rounded-xl font-mono"
               />
             ) : (
-              <p className="mt-1 text-sm font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg">
+              <p className="mt-1 text-sm font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
                 {formData.nif}
               </p>
             )}
@@ -195,7 +206,7 @@ export default function ProfilePage() {
               <Input
                 value={formData.nis}
                 onChange={(e) => updateField("nis", e.target.value)}
-                className="mt-1 h-10 rounded-xl font-mono"
+                className="mt-1 h-11 rounded-xl font-mono"
               />
             ) : (
               <p className="mt-1 text-sm font-mono text-gray-800">{formData.nis}</p>
@@ -208,7 +219,7 @@ export default function ProfilePage() {
               <Input
                 value={formData.ai}
                 onChange={(e) => updateField("ai", e.target.value)}
-                className="mt-1 h-10 rounded-xl font-mono"
+                className="mt-1 h-11 rounded-xl font-mono"
               />
             ) : (
               <p className="mt-1 text-sm font-mono text-gray-800">{formData.ai}</p>
@@ -221,7 +232,7 @@ export default function ProfilePage() {
               <Input
                 value={formData.rc}
                 onChange={(e) => updateField("rc", e.target.value)}
-                className="mt-1 h-10 rounded-xl font-mono"
+                className="mt-1 h-11 rounded-xl font-mono"
               />
             ) : (
               <p className="mt-1 text-sm font-mono text-gray-800">{formData.rc}</p>
@@ -234,7 +245,7 @@ export default function ProfilePage() {
               <Input
                 value={formData.wilaya}
                 onChange={(e) => updateField("wilaya", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
               <p className="mt-1 text-sm font-medium text-gray-800 flex items-center gap-1">
@@ -250,7 +261,7 @@ export default function ProfilePage() {
               <Input
                 value={formData.address}
                 onChange={(e) => updateField("address", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
               <p className="mt-1 text-sm text-gray-800">{formData.address}</p>
@@ -263,10 +274,13 @@ export default function ProfilePage() {
               <Input
                 value={formData.activityType}
                 onChange={(e) => updateField("activityType", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
-              <p className="mt-1 text-sm text-gray-800">{formData.activityType}</p>
+              <p className="mt-1 text-sm text-gray-800 flex items-center gap-1">
+                <Briefcase className="h-3 w-3 text-gray-400" />
+                {formData.activityType}
+              </p>
             )}
           </div>
 
@@ -276,10 +290,10 @@ export default function ProfilePage() {
               <Input
                 value={formData.taxRegime}
                 onChange={(e) => updateField("taxRegime", e.target.value)}
-                className="mt-1 h-10 rounded-xl"
+                className="mt-1 h-11 rounded-xl"
               />
             ) : (
-              <p className="mt-1 text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg">
+              <p className="mt-1 text-sm font-medium text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100">
                 {formData.taxRegime}
               </p>
             )}
@@ -287,10 +301,12 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Account Info */}
+      {/* Account Info Card */}
       <div className="gov-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <FileText className="h-4 w-4 text-[#0C4A2E]" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50">
+            <FileText className="h-4 w-4 text-emerald-600" />
+          </div>
           <h2 className="gov-section-title">Informations du Compte / معلومات الحساب</h2>
         </div>
         {saveSuccess && (
@@ -298,7 +314,7 @@ export default function ProfilePage() {
             <CheckCircle2 className="h-4 w-4" /> Profil sauvegardé avec succès / تم حفظ الملف الشخصي بنجاح
           </div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-sm">
           <div>
             <p className="text-xs text-gray-400">ID du compte</p>
             <p className="font-mono text-xs text-gray-600">{user?.id || "demo-user"}</p>
