@@ -5,6 +5,9 @@ import { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { type Company } from "@/lib/supabase";
 
+// Demo company ID — used when no user is authenticated so the app shows real data
+const DEMO_COMPANY_ID = "c0000000-0000-0000-0000-000000000001";
+
 interface Profile {
   id: string;
   email: string;
@@ -108,7 +111,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (mounted) setLoading(false);
         });
       } else {
-        setLoading(false);
+        // No user — demo mode: fetch the demo company so the dashboard works
+        supabase
+          .from("companies")
+          .select("*")
+          .eq("id", DEMO_COMPANY_ID)
+          .single()
+          .then(({ data: demoCompany }) => {
+            if (mounted && demoCompany) setCompany(demoCompany as Company);
+            if (mounted) setLoading(false);
+          })
+          .catch(() => {
+            if (mounted) setLoading(false);
+          });
       }
     }).catch((err) => {
       if (!mounted) return;
@@ -127,7 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await fetchProfileAndCompany(session.user.id);
       } else {
         setProfile(null);
-        setCompany(null);
+        // In demo mode: fetch the demo company data so it's available
+        // even when no user is authenticated
+        try {
+          const { data: demoCompany } = await supabase
+            .from("companies")
+            .select("*")
+            .eq("id", DEMO_COMPANY_ID)
+            .single();
+          if (demoCompany) setCompany(demoCompany as Company);
+        } catch {
+          setCompany(null);
+        }
       }
       setLoading(false);
     });
@@ -178,11 +204,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setCompany(null);
   }, [supabase]);
 
+  // When not authenticated but Supabase is configured, provide the demo company
+  // so that the dashboard and other pages can display real data from Supabase
+  const effectiveCompanyId = useMemo(() => {
+    if (company?.id) return company.id;
+    if (profile?.company_id) return profile.company_id;
+    // Demo mode: if Supabase is configured but user isn't logged in,
+    // use the demo company ID so pages can read real data
+    if (isSupabaseConfigured() && !user && !loading) return DEMO_COMPANY_ID;
+    return null;
+  }, [company?.id, profile?.company_id, user, loading]);
+
   const value: AuthContextType = {
     user,
     profile,
     company,
-    companyId: company?.id ?? profile?.company_id ?? null,
+    companyId: effectiveCompanyId,
     loading,
     isAuthenticated: !!user,
     login,

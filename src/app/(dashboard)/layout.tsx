@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Cog,
   Lock,
+  Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,12 @@ const navItems = [
     label: "Admin",
     labelAr: "الإدارة",
     icon: Settings,
+  },
+  {
+    href: "/setup",
+    label: "Setup DB",
+    labelAr: "إعداد ق.ب",
+    icon: Database,
   },
 ];
 
@@ -350,6 +357,12 @@ export default function DashboardLayout({
                     <Link href="/security" className="flex items-center gap-2">
                       <Lock className="h-4 w-4" />
                       <span>Sécurité / الأمان</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href="/setup" className="flex items-center gap-2">
+                      <Database className="h-4 w-4" />
+                      <span>Setup DB / إعداد ق.ب</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

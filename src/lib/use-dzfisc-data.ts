@@ -179,9 +179,36 @@ export function useDZFiscData(companyId?: string | null) {
       if (empRes.error) throw empRes.error;
       if (dlRes.error) throw dlRes.error;
 
-      if (taxRes.data && taxRes.data.length > 0) setTaxObligations(taxRes.data);
-      if (empRes.data && empRes.data.length > 0) setEmployees(empRes.data);
-      if (dlRes.data && dlRes.data.length > 0) setDeadlines(dlRes.data);
+      // Deduplicate data (previous seed runs may have created duplicates)
+      if (taxRes.data && taxRes.data.length > 0) {
+        const seen = new Set<string>();
+        const deduped = taxRes.data.filter((t: TaxObligation) => {
+          const key = `${t.tax_type}|${t.period}|${t.due_date}|${t.status}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setTaxObligations(deduped);
+      }
+      if (empRes.data && empRes.data.length > 0) {
+        const seen = new Set<string>();
+        const deduped = empRes.data.filter((e: Employee) => {
+          if (seen.has(e.name)) return false;
+          seen.add(e.name);
+          return true;
+        });
+        setEmployees(deduped);
+      }
+      if (dlRes.data && dlRes.data.length > 0) {
+        const seen = new Set<string>();
+        const deduped = dlRes.data.filter((d: Deadline) => {
+          const key = `${d.title}|${d.deadline_date}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setDeadlines(deduped);
+      }
 
       setIsConnected(true);
     } catch (err) {
