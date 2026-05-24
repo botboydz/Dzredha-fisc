@@ -36,7 +36,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const supabase = useMemo(() => isSupabaseConfigured() ? getSupabaseBrowserClient() : null, []);
-  const initializedRef = useRef(false);
+
+  // Use a ref to track whether auth initialization is complete
+  // This is more robust than initializedRef because it survives React Strict Mode remounts
+  const authInitialized = useRef(false);
 
   const fetchProfileAndCompany = useCallback(
     async (userId: string) => {
@@ -73,31 +76,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!supabase) {
-      // CRITICAL: If Supabase is not configured, we must still set loading=false
-      // Otherwise the entire app stays stuck on the loading screen forever
+      // If Supabase is not configured, immediately set loading=false
+      // This allows the app to render in demo mode
       setLoading(false);
       return;
     }
 
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    // Guard against double initialization in React Strict Mode
+    if (authInitialized.current) return;
+    authInitialized.current = true;
+
+    let mounted = true;
+    let safetyTimeout: ReturnType<typeof setTimeout> | null = null;
 
     // Safety timeout: ensure loading=false within 5 seconds even if Supabase hangs
-    const safetyTimeout = setTimeout(() => {
-      setLoading(false);
+    // This timeout is NOT cleared by the getUser() promise — it's a hard deadline
+    safetyTimeout = setTimeout(() => {
+      if (mounted) {
+        console.warn("[Auth] Safety timeout reached — forcing loading=false");
+        setLoading(false);
+      }
     }, 5000);
 
     // Get initial session
     supabase.auth.getUser().then(({ data: { user: currentUser } }) => {
-      clearTimeout(safetyTimeout);
+      if (!mounted) return;
+      if (safetyTimeout) clearTimeout(safetyTimeout);
       setUser(currentUser);
       if (currentUser) {
-        fetchProfileAndCompany(currentUser.id).finally(() => setLoading(false));
+        fetchProfileAndCompany(currentUser.id).finally(() => {
+          if (mounted) setLoading(false);
+        });
       } else {
         setLoading(false);
       }
-    }).catch(() => {
-      clearTimeout(safetyTimeout);
+    }).catch((err) => {
+      if (!mounted) return;
+      if (safetyTimeout) clearTimeout(safetyTimeout);
+      console.error("[Auth] getUser() failed:", err);
       setLoading(false);
     });
 
@@ -105,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
       setUser(session?.user ?? null);
       if (session?.user) {
         await fetchProfileAndCompany(session.user.id);
@@ -116,7 +133,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      clearTimeout(safetyTimeout);
+      mounted = false;
+      if (safetyTimeout) clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, [supabase, fetchProfileAndCompany]);

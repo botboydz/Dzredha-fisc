@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 /**
  * Hook that simulates a loading state on initial mount,
@@ -11,17 +11,21 @@ import { useState, useEffect } from "react";
  */
 export function useLoadingState(minDuration = 600, delay = 0) {
   const [isLoading, setIsLoading] = useState(true);
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const delayTimer = setTimeout(() => {
-      const loadTimer = setTimeout(() => {
+      loadTimerRef.current = setTimeout(() => {
         setIsLoading(false);
       }, minDuration);
-
-      return () => clearTimeout(loadTimer);
     }, delay);
 
-    return () => clearTimeout(delayTimer);
+    return () => {
+      clearTimeout(delayTimer);
+      if (loadTimerRef.current) {
+        clearTimeout(loadTimerRef.current);
+      }
+    };
   }, [minDuration, delay]);
 
   return isLoading;
