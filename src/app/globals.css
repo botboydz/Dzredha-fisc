@@ -235,3 +235,286 @@
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
+
+/* ============================================================ */
+/*  Government Design System Extensions                          */
+/* ============================================================ */
+
+/* Government Card */
+.gov-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  position: relative;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.gov-card:hover {
+  box-shadow: 0 4px 16px rgba(12, 74, 46, 0.06);
+}
+
+.gov-card-accent {
+  border-left: 4px solid #0C4A2E;
+}
+
+.gov-card-accent-red {
+  border-left: 4px solid #DC2626;
+}
+
+.gov-card-accent-orange {
+  border-left: 4px solid #EA580C;
+}
+
+.gov-card-accent-green {
+  border-left: 4px solid #16A34A;
+}
+
+.gov-card-accent-gold {
+  border-left: 4px solid #B8860B;
+}
+
+.gov-card-accent-blue {
+  border-left: 4px solid #2563EB;
+}
+
+.gov-card-accent-purple {
+  border-left: 4px solid #7C3AED;
+}
+
+.gov-card-accent-teal {
+  border-left: 4px solid #0D9488;
+}
+
+/* Government Table */
+.gov-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.gov-table thead tr {
+  background: #0C4A2E;
+}
+
+.gov-table thead th {
+  padding: 0.75rem 1.25rem;
+  text-align: left;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.gov-table tbody tr:nth-child(even) {
+  background: #FAFAF8;
+}
+
+.gov-table tbody tr:nth-child(odd) {
+  background: #FFFFFF;
+}
+
+.gov-table tbody tr:hover {
+  background: #F0FDF4;
+}
+
+.gov-table tbody td {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.gov-table tfoot tr {
+  background: #F0FDF4;
+  border-top: 2px solid #0C4A2E;
+}
+
+.gov-table tfoot td {
+  padding: 0.75rem 1.25rem;
+  font-weight: 700;
+}
+
+/* Official Document Frame */
+.doc-frame {
+  border: 2px solid #0C4A2E;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  position: relative;
+  background: white;
+  overflow: hidden;
+}
+
+.doc-frame::before {
+  content: "RÉPUBLIQUE ALGÉRIENNE DÉMOCRATIQUE ET POPULAIRE";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(12, 74, 46, 0.15);
+  text-align: center;
+  border-bottom: 1px solid rgba(12, 74, 46, 0.08);
+}
+
+.doc-frame::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  width: 60%;
+  height: 60%;
+  border: 3px double rgba(12, 74, 46, 0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Government Stamp */
+.gov-stamp {
+  width: 4rem;
+  height: 4rem;
+  border: 3px solid rgba(12, 74, 46, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 900;
+  color: rgba(12, 74, 46, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transform: rotate(-15deg);
+  position: relative;
+}
+
+.gov-stamp::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid rgba(12, 74, 46, 0.15);
+  border-radius: 50%;
+}
+
+/* Government Header Bar */
+.gov-header-bar {
+  background: #0C4A2E;
+  border-bottom: 3px solid #B8860B;
+}
+
+/* Government Section Title */
+.gov-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #1A1A1A;
+}
+
+.gov-section-subtitle {
+  font-size: 0.625rem;
+  color: #666666;
+}
+
+/* Skeleton Shimmer */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-shimmer-dark {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* QR Code Placeholder */
+.qr-placeholder {
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  font-weight: 700;
+  color: #9ca3af;
+  background: repeating-conic-gradient(#e5e7eb 0% 25%, white 0% 50%) 50% / 8px 8px;
+}
+
+/* Step Indicator */
+.step-active {
+  background: #0C4A2E;
+  color: white;
+}
+
+.step-completed {
+  background: #16A34A;
+  color: white;
+}
+
+.step-pending {
+  background: #E5E7EB;
+  color: #9CA3AF;
+}
+
+/* Compliance Ring */
+.compliance-ring {
+  transform: rotate(-90deg);
+}
+
+.compliance-ring-track {
+  fill: none;
+  stroke: #E5E7EB;
+  stroke-width: 8;
+}
+
+.compliance-ring-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Drop Zone */
+.drop-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.drop-zone:hover {
+  border-color: #0C4A2E;
+  background: #F0FDF4;
+}
+
+.drop-zone-active {
+  border-color: #0C4A2E;
+  background: #F0FDF4;
+}
+
+/* Chat Bubble */
+.chat-bubble-user {
+  background: #0C4A2E;
+  color: white;
+  border-radius: 1rem 1rem 0.25rem 1rem;
+}
+
+.chat-bubble-bot {
+  background: #F3F4F6;
+  color: #1A1A1A;
+  border-radius: 1rem 1rem 1rem 0.25rem;
+}

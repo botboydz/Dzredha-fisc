@@ -1,0 +1,540 @@
+"use client";
+
+import React, { useState, useMemo } from "react";
+import {
+  FileText,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Upload,
+  Save,
+  Download,
+  AlertTriangle,
+  Clock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/auth-context";
+import { DeclarationBadge } from "@/components/gov/status-badge";
+import { DeclarationsSkeleton } from "@/components/skeletons";
+
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
+
+const DECLARATION_TYPES = [
+  { key: "IRG", label: "IRG", labelAr: "ض.د.ع" },
+  { key: "IBS", label: "IBS", labelAr: "ض.أ.ش" },
+  { key: "TVA", label: "TVA", labelAr: "ر.ق" },
+  { key: "TAP", label: "TAP", labelAr: "ض.م.م" },
+  { key: "FONCIERE", label: "Taxe Foncière", labelAr: "الضريبة العقارية" },
+  { key: "AUTO", label: "Auto-entrepreneur", labelAr: "مستقل" },
+];
+
+const STEPS = [
+  { num: 1, label: "Informations", labelAr: "المعلومات" },
+  { num: 2, label: "Données Financières", labelAr: "البيانات المالية" },
+  { num: 3, label: "Calcul", labelAr: "الحساب" },
+  { num: 4, label: "Vérification", labelAr: "التحقق" },
+];
+
+/* Mock existing declarations */
+const MOCK_DECLARATIONS = [
+  { id: "DEC-001", type: "TAP", period: "Avril 2026", status: "approved" as const, amount: 132000, date: "2026-04-19" },
+  { id: "DEC-002", type: "TVA", period: "Avril 2026", status: "approved" as const, amount: 2480000, date: "2026-04-19" },
+  { id: "DEC-003", type: "IBS", period: "T1 2026", status: "submitted" as const, amount: 1850000, date: "2026-04-28" },
+  { id: "DEC-004", type: "IRG", period: "Avril 2026", status: "submitted" as const, amount: 78000, date: "2026-04-20" },
+  { id: "DEC-005", type: "TAP", period: "Mai 2026", status: "draft" as const, amount: 145000, date: "" },
+  { id: "DEC-006", type: "TVA", period: "Mai 2026", status: "rejected" as const, amount: 2755000, date: "2026-05-10" },
+];
+
+function formatDZD(amount: number): string {
+  return new Intl.NumberFormat("fr-DZ", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount) + " DZD";
+}
+
+/* ------------------------------------------------------------------ */
+/*  Step Indicator                                                     */
+/* ------------------------------------------------------------------ */
+
+function StepIndicator({ currentStep }: { currentStep: number }) {
+  return (
+    <div className="flex items-center gap-1 mb-6">
+      {STEPS.map((step, i) => (
+        <React.Fragment key={step.num}>
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all ${
+                i + 1 < currentStep
+                  ? "step-completed"
+                  : i + 1 === currentStep
+                    ? "step-active"
+                    : "step-pending"
+              }`}
+            >
+              {i + 1 < currentStep ? <Check className="h-4 w-4" /> : step.num}
+            </div>
+            <div className="hidden sm:block">
+              <p className={`text-xs font-semibold ${i + 1 === currentStep ? "text-[#0C4A2E]" : "text-gray-400"}`}>
+                {step.label}
+              </p>
+              <p className="text-[9px] text-gray-300">{step.labelAr}</p>
+            </div>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div className={`flex-1 h-0.5 mx-2 rounded ${i + 1 < currentStep ? "bg-emerald-500" : "bg-gray-200"}`} />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Declaration Form                                                   */
+/* ------------------------------------------------------------------ */
+
+function DeclarationForm({ type }: { type: string }) {
+  const { company, profile } = useAuth();
+  const [step, setStep] = useState(1);
+  const [agreed, setAgreed] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
+
+  // Form data state
+  const [formData, setFormData] = useState({
+    nif: company?.nif || "00016XXXXXXXXX",
+    nis: company?.nis || "16XXXXXX",
+    companyName: company?.name || "SARL Demo",
+    wilaya: company?.wilaya || "Alger",
+    revenue: "14500000",
+    expenses: "8200000",
+    deductions: "500000",
+    salaryMass: "575000",
+  });
+
+  const updateField = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setAutoSaveStatus("saving");
+    setTimeout(() => setAutoSaveStatus("saved"), 1000);
+    setTimeout(() => setAutoSaveStatus("idle"), 3000);
+  };
+
+  // Calculations
+  const calculations = useMemo(() => {
+    const revenue = Number(formData.revenue) || 0;
+    const expenses = Number(formData.expenses) || 0;
+    const deductions = Number(formData.deductions) || 0;
+    const salaryMass = Number(formData.salaryMass) || 0;
+    const profit = revenue - expenses - deductions;
+
+    const rates: Record<string, { amount: number; rate: string; base: number }> = {
+      TAP: { amount: revenue * 0.01, rate: "1%", base: revenue },
+      TVA: { amount: revenue * 0.19, rate: "19%", base: revenue },
+      IBS: { amount: profit > 0 ? profit * 0.19 : 0, rate: "19%", base: profit },
+      IRG: {
+        amount: (() => {
+          let irg = 0;
+          let remaining = salaryMass;
+          const brackets = [
+            { limit: 240000, rate: 0 },
+            { limit: 360000, rate: 0.2 },
+            { limit: 480000, rate: 0.3 },
+            { limit: Infinity, rate: 0.35 },
+          ];
+          let prev = 0;
+          for (const b of brackets) {
+            const taxable = Math.min(remaining, b.limit - prev);
+            if (taxable <= 0) break;
+            irg += taxable * b.rate;
+            remaining -= taxable;
+            prev = b.limit;
+          }
+          return irg;
+        })(),
+        rate: "Progressif",
+        base: salaryMass,
+      },
+      FONCIERE: { amount: 0, rate: "3%", base: 0 },
+      AUTO: { amount: revenue * 0.005, rate: "0.5%", base: revenue },
+    };
+
+    return rates[type] || { amount: 0, rate: "—", base: 0 };
+  }, [formData, type]);
+
+  const canAdvance = () => {
+    if (step === 1) return formData.nif && formData.companyName;
+    if (step === 2) return formData.revenue !== "0";
+    if (step === 3) return true;
+    return agreed;
+  };
+
+  return (
+    <div>
+      {/* Auto-save indicator */}
+      <div className="flex items-center justify-end gap-2 mb-4">
+        {autoSaveStatus === "saving" && (
+          <span className="flex items-center gap-1 text-[10px] text-amber-600">
+            <Clock className="h-3 w-3 animate-spin" /> Sauvegarde...
+          </span>
+        )}
+        {autoSaveStatus === "saved" && (
+          <span className="flex items-center gap-1 text-[10px] text-emerald-600">
+            <Check className="h-3 w-3" /> Brouillon sauvegardé
+          </span>
+        )}
+      </div>
+
+      <StepIndicator currentStep={step} />
+
+      {/* Step 1: Informations Contribuable */}
+      {step === 1 && (
+        <div className="gov-card p-6 space-y-4">
+          <h3 className="gov-section-title">Informations du Contribuable / معلومات المكلف</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">NIF (Numéro d'Identification Fiscale)</Label>
+              <Input
+                value={formData.nif}
+                onChange={(e) => updateField("nif", e.target.value)}
+                className="mt-1 h-10 rounded-xl"
+                placeholder="00016XXXXXXXXX"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">NIS (Numéro d'Identification Statistique)</Label>
+              <Input
+                value={formData.nis}
+                onChange={(e) => updateField("nis", e.target.value)}
+                className="mt-1 h-10 rounded-xl"
+                placeholder="16XXXXXX"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">Raison Sociale / اسم الشركة</Label>
+              <Input
+                value={formData.companyName}
+                onChange={(e) => updateField("companyName", e.target.value)}
+                className="mt-1 h-10 rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">Wilaya / الولاية</Label>
+              <Input
+                value={formData.wilaya}
+                onChange={(e) => updateField("wilaya", e.target.value)}
+                className="mt-1 h-10 rounded-xl"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Données Financières */}
+      {step === 2 && (
+        <div className="gov-card p-6 space-y-4">
+          <h3 className="gov-section-title">Données Financières / البيانات المالية</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">
+                Chiffre d&apos;affaires HT / رقم الأعمال (بدون ر.ق)
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type="number"
+                  value={formData.revenue}
+                  onChange={(e) => updateField("revenue", e.target.value)}
+                  className="h-10 rounded-xl pr-12 dzd-badge"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">
+                Charges déductibles / المصاريف القابلة للخصم
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type="number"
+                  value={formData.expenses}
+                  onChange={(e) => updateField("expenses", e.target.value)}
+                  className="h-10 rounded-xl pr-12 dzd-badge"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold text-gray-500">
+                Déductions supplémentaires / خصومات إضافية
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  type="number"
+                  value={formData.deductions}
+                  onChange={(e) => updateField("deductions", e.target.value)}
+                  className="h-10 rounded-xl pr-12 dzd-badge"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
+              </div>
+            </div>
+            {(type === "IRG") && (
+              <div>
+                <Label className="text-xs font-semibold text-gray-500">
+                  Masse salariale brute / الكتلة الأجرية الإجمالية
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    value={formData.salaryMass}
+                    onChange={(e) => updateField("salaryMass", e.target.value)}
+                    className="h-10 rounded-xl pr-12 dzd-badge"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">DZD</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Calcul */}
+      {step === 3 && (
+        <div className="space-y-4">
+          <div className="bg-gradient-to-br from-emerald-700 to-teal-800 rounded-xl p-6 text-white shadow-xl">
+            <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">
+              Montant Calculé — {DECLARATION_TYPES.find((d) => d.key === type)?.label}
+            </p>
+            <p className="text-emerald-200/60 text-[10px] mb-4">
+              {DECLARATION_TYPES.find((d) => d.key === type)?.labelAr}
+            </p>
+            <p className="text-4xl font-extrabold dzd-badge animate-count">
+              {formatDZD(calculations.amount)}
+            </p>
+            <div className="flex items-center gap-4 mt-4 text-emerald-100 text-xs">
+              <span>Taux: {calculations.rate}</span>
+              <span>Base: {formatDZD(calculations.base)}</span>
+            </div>
+          </div>
+
+          <div className="gov-card p-5">
+            <h4 className="gov-section-title mb-3">Détail du Calcul / تفصيل الحساب</h4>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Chiffre d&apos;affaires HT</span>
+                <span className="font-medium dzd-badge">{formatDZD(Number(formData.revenue) || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Charges déductibles</span>
+                <span className="font-medium dzd-badge text-red-600">− {formatDZD(Number(formData.expenses) || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Déductions supplémentaires</span>
+                <span className="font-medium dzd-badge text-red-600">− {formatDZD(Number(formData.deductions) || 0)}</span>
+              </div>
+              <div className="border-t border-gray-100 pt-2 flex justify-between">
+                <span className="font-bold text-gray-800">Résultat imposable</span>
+                <span className="font-bold dzd-badge text-[#0C4A2E]">
+                  {formatDZD((Number(formData.revenue) || 0) - (Number(formData.expenses) || 0) - (Number(formData.deductions) || 0))}
+                </span>
+              </div>
+              <div className="border-t border-gray-100 pt-2 flex justify-between">
+                <span className="font-bold text-[#0C4A2E]">Impôt dû ({calculations.rate})</span>
+                <span className="font-extrabold dzd-badge text-[#0C4A2E] text-lg">
+                  {formatDZD(calculations.amount)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Vérification & Soumission */}
+      {step === 4 && (
+        <div className="space-y-4">
+          <div className="gov-card p-6">
+            <h3 className="gov-section-title mb-4">Récapitulatif / ملخص</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="space-y-2">
+                <div className="flex justify-between"><span className="text-gray-500">Type</span><span className="font-medium">{DECLARATION_TYPES.find((d) => d.key === type)?.label}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">NIF</span><span className="font-mono text-xs">{formData.nif}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Contribuable</span><span className="font-medium">{formData.companyName}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Wilaya</span><span className="font-medium">{formData.wilaya}</span></div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between"><span className="text-gray-500">CA HT</span><span className="font-medium dzd-badge">{formatDZD(Number(formData.revenue) || 0)}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Taux</span><span className="font-medium">{calculations.rate}</span></div>
+                <div className="flex justify-between border-t border-gray-100 pt-2"><span className="font-bold text-[#0C4A2E]">Montant dû</span><span className="font-extrabold text-[#0C4A2E] dzd-badge">{formatDZD(calculations.amount)}</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Legal Notice */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-bold text-amber-800">Mention Légale / إقرار قانوني</p>
+                <p className="text-[11px] text-amber-700 mt-1">
+                  Conformément à l&apos;article 115 du Code des Impôts Directs et Taxes Assimilées, toute déclaration inexacte
+                  ou incomplète expose le contribuable à une amende fiscale de 10% à 25% du montant éludé, sans préjudice
+                  des poursuites pénales prévues par la législation en vigueur.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Upload area */}
+          <div className="drop-zone">
+            <Upload className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-sm font-medium text-gray-500">Glisser-déposer vos justificatifs</p>
+            <p className="text-[10px] text-gray-400">PDF, JPEG, PNG — Max 10 MB / إسقاط المستندات هنا</p>
+          </div>
+
+          {/* Agreement checkbox */}
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="agree"
+              checked={agreed}
+              onCheckedChange={(v) => setAgreed(v === true)}
+              className="mt-0.5 cursor-pointer"
+            />
+            <Label htmlFor="agree" className="text-xs text-gray-600 cursor-pointer">
+              J&apos;atteste l&apos;exactitude des informations fournies et reconnais avoir pris connaissance
+              des sanctions prévues en cas de fausse déclaration / أقر بصحة المعلومات المقدمة
+            </Label>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation buttons */}
+      <div className="flex items-center justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setStep(Math.max(1, step - 1))}
+          disabled={step === 1}
+          className="gap-1 cursor-pointer"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Précédent
+        </Button>
+
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-1 cursor-pointer text-xs">
+            <Save className="h-3.5 w-3.5" />
+            Brouillon
+          </Button>
+
+          {step < 4 ? (
+            <Button
+              onClick={() => setStep(step + 1)}
+              disabled={!canAdvance()}
+              className="bg-[#0C4A2E] hover:bg-[#166534] text-white gap-1 cursor-pointer"
+            >
+              Suivant
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              disabled={!agreed}
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white gap-1 cursor-pointer"
+            >
+              <Check className="h-4 w-4" />
+              Soumettre / إرسال
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Declarations Page                                                  */
+/* ------------------------------------------------------------------ */
+
+export default function DeclarationsPage() {
+  const [activeType, setActiveType] = useState("TAP");
+  const [loading] = useState(false);
+
+  if (loading) {
+    return <DeclarationsSkeleton />;
+  }
+
+  return (
+    <div className="space-y-6 view-enter">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-[#1A1A1A] flex items-center gap-2">
+            <FileText className="h-5 w-5 text-[#0C4A2E]" />
+            Déclarations Fiscales / التصريحات الجبائية
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">Créez et gérez vos déclarations fiscales</p>
+        </div>
+        <Button className="bg-[#0C4A2E] hover:bg-[#166534] text-white text-xs gap-1 cursor-pointer">
+          <Download className="h-3.5 w-3.5" />
+          Export
+        </Button>
+      </div>
+
+      {/* Existing declarations */}
+      <div>
+        <h2 className="gov-section-title mb-3">Déclarations Existantes / التصريحات الموجودة</h2>
+        <div className="overflow-hidden rounded-xl border border-gray-200">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="gov-table">
+              <thead>
+                <tr>
+                  <th>Réf</th>
+                  <th>Type</th>
+                  <th>Période</th>
+                  <th>Statut</th>
+                  <th className="text-right">Montant</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_DECLARATIONS.map((dec) => (
+                  <tr key={dec.id}>
+                    <td className="font-mono text-xs">{dec.id}</td>
+                    <td className="font-semibold text-sm">{dec.type}</td>
+                    <td className="text-sm">{dec.period}</td>
+                    <td><DeclarationBadge status={dec.status} /></td>
+                    <td className="text-right font-bold dzd-badge text-sm">{formatDZD(dec.amount)}</td>
+                    <td className="text-xs text-gray-500">{dec.date || "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Declaration type tabs */}
+      <div>
+        <h2 className="gov-section-title mb-3">Nouvelle Déclaration / تصريح جديد</h2>
+        <Tabs value={activeType} onValueChange={setActiveType}>
+          <TabsList className="bg-gray-100 p-1 rounded-xl h-auto flex-wrap">
+            {DECLARATION_TYPES.map((dt) => (
+              <TabsTrigger
+                key={dt.key}
+                value={dt.key}
+                className="text-xs data-[state=active]:bg-[#0C4A2E] data-[state=active]:text-white rounded-lg cursor-pointer"
+              >
+                {dt.label} <span className="text-[9px] opacity-50 ml-1">{dt.labelAr}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Multi-step form */}
+      <DeclarationForm type={activeType} />
+    </div>
+  );
+}
