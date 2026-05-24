@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NotificationsSkeleton } from "@/components/skeletons";
+import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Notifications                                                 */
@@ -120,7 +121,7 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bgCo
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
   const [filter, setFilter] = useState("all");
-  const [loading] = useState(false);
+  const loading = useLoadingState(500);
 
   const filteredNotifications = notifications.filter((n) => {
     if (filter === "all") return true;

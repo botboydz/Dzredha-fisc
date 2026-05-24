@@ -9,36 +9,36 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={`gov-card gov-card-accent p-5 space-y-3 ${className ?? ""}`}>
+    <div className={`gov-card gov-card-accent p-5 space-y-3 skeleton-pulse ${className ?? ""}`}>
       <div className="flex items-center gap-2">
         <Skeleton className="h-9 w-9 rounded-xl skeleton-shimmer" />
-        <Skeleton className="h-3 w-28 skeleton-shimmer" />
+        <Skeleton className="h-3 w-28 skeleton-shimmer skeleton-delay-2" />
       </div>
-      <Skeleton className="h-8 w-36 skeleton-shimmer" />
-      <Skeleton className="h-3 w-24 skeleton-shimmer" />
+      <Skeleton className="h-8 w-36 skeleton-shimmer skeleton-delay-3" />
+      <Skeleton className="h-3 w-24 skeleton-shimmer skeleton-delay-4" />
     </div>
   );
 }
 
 export function ChartSkeleton({ className }: { className?: string }) {
   return (
-    <div className={`gov-card p-6 space-y-4 ${className ?? ""}`}>
+    <div className={`gov-card p-6 space-y-4 skeleton-pulse ${className ?? ""}`}>
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-40 skeleton-shimmer" />
-        <Skeleton className="h-8 w-24 rounded-md skeleton-shimmer" />
+        <Skeleton className="h-8 w-24 rounded-md skeleton-shimmer skeleton-delay-2" />
       </div>
       <div className="flex items-end gap-2 h-48">
         {Array.from({ length: 12 }).map((_, i) => (
           <Skeleton
             key={i}
-            className="flex-1 rounded-t-md skeleton-shimmer"
+            className={`flex-1 rounded-t-md skeleton-shimmer skeleton-delay-${Math.min(i + 1, 8)}`}
             style={{ height: `${30 + Math.random() * 70}%` }}
           />
         ))}
       </div>
       <div className="flex justify-between">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-3 w-8 skeleton-shimmer" />
+          <Skeleton key={i} className={`h-3 w-8 skeleton-shimmer skeleton-delay-${Math.min(i + 1, 8)}`} />
         ))}
       </div>
     </div>
@@ -163,7 +163,7 @@ export function DashboardSkeleton() {
       {/* 8 stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <CardSkeleton key={i} />
+          <CardSkeleton key={i} className={`skeleton-delay-${Math.min(i + 1, 8)}`} />
         ))}
       </div>
 
@@ -460,6 +460,66 @@ export function ProfileSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FormSkeleton fields={4} />
         <FormSkeleton fields={8} />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Header Skeleton                                                    */
+/* ------------------------------------------------------------------ */
+
+export function HeaderSkeleton() {
+  return (
+    <header className="gov-header-bar sticky top-0 z-30">
+      <div className="flex items-center justify-between h-14 px-4">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded skeleton-shimmer-dark" />
+          <Skeleton className="h-4 w-16 skeleton-shimmer-dark" />
+          <Skeleton className="h-3 w-40 skeleton-shimmer-dark hidden md:block" />
+        </div>
+        <div className="hidden md:flex items-center max-w-md flex-1 mx-8">
+          <Skeleton className="h-8 w-full rounded-lg skeleton-shimmer-dark" />
+        </div>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-8 rounded skeleton-shimmer-dark" />
+          <Skeleton className="h-8 w-8 rounded skeleton-shimmer-dark" />
+          <Skeleton className="h-8 w-20 rounded skeleton-shimmer-dark" />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Full Page Loading Skeleton (Layout Level)                          */
+/* ------------------------------------------------------------------ */
+
+export function FullPageSkeleton() {
+  return (
+    <div className="flex min-h-screen">
+      <SidebarSkeleton />
+      <div className="flex-1 flex flex-col min-w-0">
+        <HeaderSkeleton />
+        <main className="flex-1 p-4 md:p-6 bg-[#FAFAF8] overflow-auto">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Skeleton className="h-6 w-64 skeleton-shimmer" />
+                <Skeleton className="h-3 w-40 skeleton-shimmer" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-32 rounded-md skeleton-shimmer" />
+                <Skeleton className="h-8 w-24 rounded-md skeleton-shimmer" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );

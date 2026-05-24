@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import { ProfileSkeleton } from "@/components/skeletons";
+import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Profile Page                                                       */
@@ -24,7 +25,7 @@ import { ProfileSkeleton } from "@/components/skeletons";
 export default function ProfilePage() {
   const { user, profile, company } = useAuth();
   const [editing, setEditing] = useState(false);
-  const [loading] = useState(false);
+  const loading = useLoadingState(500);
 
   // Form state
   const [formData, setFormData] = useState({

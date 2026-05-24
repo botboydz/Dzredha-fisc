@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { SecuritySkeleton } from "@/components/skeletons";
+import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Data                                                          */
@@ -78,7 +79,7 @@ export default function SecurityPage() {
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
   const [smsNotif, setSmsNotif] = useState(true);
   const [emailNotif, setEmailNotif] = useState(true);
-  const [loading] = useState(false);
+  const loading = useLoadingState(500);
 
   const securityScore = twoFAEnabled ? 85 : 65;
 

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { DocumentBadge } from "@/components/gov/status-badge";
 import { DocumentsSkeleton } from "@/components/skeletons";
+import { useLoadingState } from "@/hooks/use-loading-state";
 
 /* ------------------------------------------------------------------ */
 /*  Mock Documents                                                     */
@@ -200,7 +201,7 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [loading] = useState(false);
+  const loading = useLoadingState(500);
 
   const filteredDocs = MOCK_DOCUMENTS.filter((doc) => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase());

@@ -38,7 +38,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/auth-context";
-import { SidebarSkeleton } from "@/components/skeletons";
+import { FullPageSkeleton } from "@/components/skeletons";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation Items                                                   */
@@ -228,21 +228,7 @@ export default function DashboardLayout({
   const unreadNotifications = 3;
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen">
-        <SidebarSkeleton />
-        <main className="flex-1 p-6 bg-[#FAFAF8]">
-          <div className="animate-pulse space-y-6">
-            <div className="h-6 w-48 skeleton-shimmer rounded" />
-            <div className="grid grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-24 skeleton-shimmer rounded-xl" />
-              ))}
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+    return <FullPageSkeleton />;
   }
 
   return (
